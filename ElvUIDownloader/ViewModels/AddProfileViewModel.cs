@@ -13,47 +13,47 @@ public class AddProfileViewModel : ViewModelBase
     {
         Title = "Новый профиль";
         OkButton = "Добавить";
-        
-        Types = new ObservableCollection<string>
-        {
-            "Retail",
-            "Classic"
-        };
+
+        Types =
+        [
+            EGameType.Retail,
+            EGameType.Classic
+        ];
 
         Profile = new ProfileModel();
     }
-    
+
     private bool _isManualSelectDirectory;
-    private List<string> _installedWows;
+    private List<string> _installedWows = [];
     private string? _selectedInstalledWow;
-    private ProfileModel _profile;
-    private string _title;
-    private string _okButton;
-    private ObservableCollection<string> _types;
+    private ProfileModel _profile = null!;
+    private string _title = null!;
+    private string _okButton = null!;
+    private ObservableCollection<EGameType> _types = [];
 
 
     public ProfileModel Profile
     {
         get => _profile;
-        set => SetField(ref _profile, value);
+        set => Set(ref _profile, value);
     }
-    
+
     public bool IsManualSelectDirectory
     {
         get => _isManualSelectDirectory;
-        set => SetField(ref _isManualSelectDirectory, value);
+        set => Set(ref _isManualSelectDirectory, value);
     }
 
-    public ObservableCollection<string> Types
+    public ObservableCollection<EGameType> Types
     {
         get => _types;
-        set => SetField(ref _types, value);
+        set => Set(ref _types, value);
     }
 
     public List<string> InstalledWows
     {
         get => _installedWows;
-        set => SetField(ref _installedWows, value);
+        set => Set(ref _installedWows, value);
     }
 
     public string? SelectedInstalledWow
@@ -61,7 +61,7 @@ public class AddProfileViewModel : ViewModelBase
         get => _selectedInstalledWow;
         set
         {
-            if (SetField(ref _selectedInstalledWow, value))
+            if (Set(ref _selectedInstalledWow, value))
             {
                 if (!IsManualSelectDirectory)
                 {
@@ -74,17 +74,17 @@ public class AddProfileViewModel : ViewModelBase
     public string OkButton
     {
         get => _okButton;
-        set => SetField(ref _okButton, value);
+        set => Set(ref _okButton, value);
     }
 
     public string Title
     {
         get => _title;
-        set => SetField(ref _title, value);
+        set => Set(ref _title, value);
     }
 
     public AsyncCommand SelectFolderCommand =>
-        new AsyncCommand(async (r) =>
+        new(_ =>
         {
             var res = DialogService.OpenFolderDialog();
 
@@ -92,5 +92,13 @@ public class AddProfileViewModel : ViewModelBase
             {
                 Profile.InstallLocation = res.SelectedDirectory;
             }
+
+            return Task.CompletedTask;
         });
+
+    public AsyncCommand SaveProfileCommand => new(_ =>
+    {
+        DialogResult = true;
+        return Task.CompletedTask;
+    });
 }

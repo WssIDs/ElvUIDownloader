@@ -6,16 +6,25 @@ namespace ElvUIDownloader.Models;
 /// <summary>
 /// 
 /// </summary>
+public enum EGameType
+{
+    Retail,
+    Classic
+}
+
+/// <summary>
+/// 
+/// </summary>
 public class ProfileModel : ModelBase
 {
-    private string _name;
     private string? _installLocation;
-    private string _type;
     private bool _isForceInstall;
     private DateTime? _date;
     private string? _version;
     private bool _isForceUpdate;
     private bool _isInstalled;
+
+    private string _name = string.Empty;
 
     /// <summary>
     /// 
@@ -23,7 +32,7 @@ public class ProfileModel : ModelBase
     public string Name
     {
         get => _name;
-        set => SetField(ref _name, value);
+        set => Set(ref _name, value);
     }
 
     /// <summary>
@@ -32,16 +41,18 @@ public class ProfileModel : ModelBase
     public string? InstallLocation
     {
         get => _installLocation;
-        set => SetField(ref _installLocation, value);
+        set => Set(ref _installLocation, value);
     }
 
+    private EGameType _type;
+
     /// <summary>
-    /// 
+    /// Тип игры
     /// </summary>
-    public string Type
+    public EGameType Type
     {
         get => _type;
-        set => SetField(ref _type, value);
+        set => Set(ref _type, value);
     }
 
     /// <summary>
@@ -50,7 +61,7 @@ public class ProfileModel : ModelBase
     public bool IsForceInstall
     {
         get => _isForceInstall;
-        set => SetField(ref _isForceInstall, value);
+        set => Set(ref _isForceInstall, value);
     }
 
     /// <summary>
@@ -59,7 +70,7 @@ public class ProfileModel : ModelBase
     public bool IsForceUpdate
     {
         get => _isForceUpdate;
-        set => SetField(ref _isForceUpdate, value);
+        set => Set(ref _isForceUpdate, value);
     }
 
     /// <summary>
@@ -69,7 +80,7 @@ public class ProfileModel : ModelBase
     public bool IsInstalled
     {
         get => _isInstalled;
-        set => SetField(ref _isInstalled, value);
+        set => Set(ref _isInstalled, value);
     }
 
     /// <summary>
@@ -78,7 +89,7 @@ public class ProfileModel : ModelBase
     public DateTime? Date
     {
         get => _date;
-        set => SetField(ref _date, value);
+        set => Set(ref _date, value);
     }
 
     /// <summary>
@@ -87,6 +98,6 @@ public class ProfileModel : ModelBase
     public string? Version
     {
         get => _version;
-        set => SetField(ref _version, value);
+        set => Set(ref _version, value);
     }
 }

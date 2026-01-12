@@ -2,5 +2,5 @@
 
 public class AppVersionModel
 {
-    public string FileVersion { get; set; }
+    public required string FileVersion { get; set; }
 }

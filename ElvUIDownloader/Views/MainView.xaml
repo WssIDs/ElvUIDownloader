@@ -3,260 +3,287 @@
           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
           xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-          xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-          xmlns:local="clr-namespace:ElvUIDownloader"
+          xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
           xmlns:viewModels="clr-namespace:ElvUIDownloader.ViewModels"
           xmlns:base="clr-namespace:ElvUIDownloader.Views.Base"
           xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
           xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
           xmlns:tb="http://www.hardcodet.net/taskbar"
+          xmlns:ui="http://schemas.modernwpf.com/2019"
           xmlns:converters="clr-namespace:ElvUIDownloader.Utils.Converters"
-          xmlns:showMeTheXaml="clr-namespace:ShowMeTheXAML;assembly=ShowMeTheXAML"
           xmlns:views="clr-namespace:ElvUIDownloader.Views"
           xmlns:commands="clr-namespace:ElvUIDownloader.Commands"
-          GlowBrush="{DynamicResource AccentColorBrush}"
           BorderThickness="1"
           mc:Ignorable="d"
-          Icon="../main.ico"
-          IconEdgeMode="Aliased"
-          IconBitmapScalingMode="HighQuality"
-          IconScalingMode="ScaleDownLargerFrame"
-          ShowIconOnTitleBar="False"
+          Icon="/main.ico"
           d:DataContext="{d:DesignInstance viewModels:MainViewModel}"
-          TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-          Background="{DynamicResource MaterialDesignPaper}"
-          TextElement.FontWeight="Medium" WindowStartupLocation="CenterScreen"
-          TextElement.FontSize="14" Closing="MainView_OnClosing"
-          FontFamily="{materialDesign:MaterialDesignFont}" ResizeMode="CanMinimize"
+          WindowStartupLocation="CenterScreen"
+          TextElement.FontSize="14"
+          ui:WindowHelper.UseModernWindowStyle="True"
+               ui:WindowHelper.FixMaximizedWindow ="False"
+          Closing="MainView_OnClosing"
+               ResizeMode="CanMinimize"
           Title="{Binding Title, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Height="550" Width="800">
     <base:BaseView.Resources>
-        <BooleanToVisibilityConverter x:Key="VisibilityConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
     </base:BaseView.Resources>
     <b:Interaction.Triggers>
-        <b:EventTrigger EventName="Loaded">
-            <b:InvokeCommandAction Command="{Binding LoadedCommand}"/>
-        </b:EventTrigger>
         <b:EventTrigger EventName="Closing">
             <b:InvokeCommandAction PassEventArgsToCommand="True" Command="{Binding ClosingCommand}"/>
         </b:EventTrigger>
     </b:Interaction.Triggers>
     <Grid>
-        <tb:TaskbarIcon IconSource="../main.ico" DoubleClickCommand="{Binding Path=ShowViewCommand}">
+        <tb:TaskbarIcon IconSource="../main.ico" DoubleClickCommand="{Binding ShowViewCommand}">
             <tb:TaskbarIcon.TrayToolTip>
                 <Border Background="#222" CornerRadius="10" Padding="15">
                     <StackPanel>
-                        <TextBlock Foreground="White" FontSize="14" Text="{Binding Path=AppVersion, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, StringFormat='ElvUIDownloader {0}'}"/>
-                        <TextBlock Margin="0 2 0 0" Foreground="White" FontSize="12" Text="{Binding Path=CurrentProfile.Name, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, StringFormat='Профиль - {0}'}"/>
+                        <TextBlock>
+                            <Run Text="{Binding ApplicationStore.Name, UpdateSourceTrigger=PropertyChanged, StringFormat='\{0} '}" Foreground="White" FontSize="14"/>
+                            <Run Foreground="Green" FontWeight="Bold" Text="{Binding Path=ApplicationStore.Version, UpdateSourceTrigger=PropertyChanged}"/>
+                        </TextBlock>
+                        <TextBlock Margin="0 5 0 0" Foreground="White" FontSize="12" Text="{Binding Path=ProfileStore.CurrentProfile.Name, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue='Нет данных', StringFormat='Профиль - {0}'}"/>
                         <TextBlock Margin="0 2 0 0" Foreground="White" FontSize="12">
                             <Run Text="Версия ElvUI - "/>
-                            <Run Text="{Binding Path=CurrentProfile.Version, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, TargetNullValue='Аддон не установлен'}"/>
+                            <Run FontWeight="Bold" Text="{Binding Path=ProfileStore.CurrentProfile.Version, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue='Нет данных', TargetNullValue='Не установлен'}">
+                                <Run.Style>
+                                     <Style TargetType="Run">
+                                         <Setter Property="Foreground" Value="Green"/>
+                                         <Style.Triggers>
+                                             <DataTrigger Binding="{Binding ProfileStore.CurrentProfile.Version, UpdateSourceTrigger=PropertyChanged}" Value="{x:Null}">
+                                                 <Setter Property="Foreground" Value="#fc3232"/>
+                                             </DataTrigger>
+                                         </Style.Triggers>
+                                     </Style>
+                                </Run.Style> 
+                            </Run>
                             <Run Text="("/>
-                            <Run Text="{Binding Path=CurrentProfile.Date, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, StringFormat='{}{0:dd.MM.yyyy HH:mm:ss}', TargetNullValue='Нет данных'}"/>
+                            <Run Text="{Binding Path=ProfileStore.CurrentProfile.Date, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, StringFormat='{}{0:dd.MM.yyyy}', FallbackValue='Нет данных', TargetNullValue='Нет данных'}"/>
                             <Run Text=")"/>
                         </TextBlock>
-                        <TextBlock Margin="0 2 0 0" Foreground="White" FontSize="12" Text="{Binding Path=CurrentProfile.InstallLocation, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                        <TextBlock Margin="0 2 0 0" Foreground="White" FontSize="12" Text="{Binding ProfileStore.CurrentProfile.InstallLocation, UpdateSourceTrigger=PropertyChanged, FallbackValue='Нет данных', Mode=TwoWay}" />
+                        <TextBlock Foreground="White" Visibility="{Binding AddonStore.ElapsedTime.IsRunning, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0 10 0 0">
+                            <Run Text="Проверка обновлений аддона - "/>
+                            <Run FontWeight="Bold" Text="{Binding AddonStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                                <Run.Style>
+                                    <Style TargetType="Run">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding AddonStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Converter={converters:TimeSpanToBooleanConverter}}" Value="True">
+                                                <Setter Property="Foreground" Value="#fc3232"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding AddonStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Converter={converters:TimeSpanToBooleanConverter}}" Value="False">
+                                              <Setter Property="Foreground" Value="Green"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Run.Style>    
+                            </Run>
+                        </TextBlock>
+                        <TextBlock Foreground="White" Visibility="{Binding ApplicationStore.ElapsedTime.IsRunning, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0 2 0 0">
+                            <Run Text="Проверка обновлений приложения - "/>
+                            <Run FontWeight="Bold" Text="{Binding ApplicationStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                                <Run.Style>
+                                    <Style TargetType="Run">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ApplicationStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Converter={converters:TimeSpanToBooleanConverter}}" Value="True">
+                                                <Setter Property="Foreground" Value="#fc3232"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ApplicationStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Converter={converters:TimeSpanToBooleanConverter}}" Value="False">
+                                              <Setter Property="Foreground" Value="Green"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Run.Style>    
+                            </Run>
+                        </TextBlock>
                     </StackPanel>
                 </Border>
             </tb:TaskbarIcon.TrayToolTip>
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="{Binding Path=CurrentProfile.Date, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, StringFormat='{}{0:dd.MM.yyyy HH:mm:ss}', TargetNullValue='Нет данных'}" Command="{Binding Path=UpdateCommand}" Margin="0"/>
-                    <MenuItem Header="{Binding Path=UpdateText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Command="{Binding Path=UpdateCommand}" Margin="0">
+                    <MenuItem IsEnabled="False" ToolTip="Установлен" Command="{Binding UpdateCommand}" Margin="0">
+                        <MenuItem.Header>
+                            <TextBlock Text="{Binding AddonStore.InstallTime, StringFormat='{}{0:dd.MM.yyyy HH:mm}', UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, TargetNullValue='Нет данных'}"/>
+                        </MenuItem.Header>
                         <MenuItem.Icon>
-                            <materialDesign:PackIcon Kind="Update" />
+                            <iconPacks:PackIconModern Kind="Timer" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem IsEnabled="{Binding Path=IsNeedInstall, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Header="Установить" Command="{Binding Path=InstallCommand}" Margin="0">
+                    <MenuItem Header="{Binding AddonStore.UpdateText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Command="{Binding UpdateCommand}" Margin="0"/>
+
+                    <MenuItem Header="Установить" Command="{Binding InstallCommand}" Margin="0">
                         <MenuItem.Icon>
-                            <materialDesign:PackIcon Kind="Download" />
+                            <iconPacks:PackIconModern Kind="Download" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem IsEnabled="{Binding Path=CurrentProfile.IsInstalled, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Header="Переустановить" Command="{Binding Path=InstallForceCommand}" Margin="0">
+                    <MenuItem IsEnabled="{Binding ProfileStore.CurrentProfile.IsInstalled, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue=False, TargetNullValue=False}" Header="Переустановить" Command="{Binding InstallForceCommand}" Margin="0"/>
+
+                    <MenuItem Header="Проверить" Command="{Binding LoadedCommand}" Margin="0">
                         <MenuItem.Icon>
-                            <materialDesign:PackIcon Kind="Downloads" />
+                            <iconPacks:PackIconModern Kind="Refresh" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Удалить" Command="{Binding Path=DeleteCommand}" Margin="0">
+                    <MenuItem Header="Удалить" Command="{Binding DeleteCommand}" Margin="0">
                         <MenuItem.Icon>
-                            <materialDesign:PackIcon Kind="Trash" />
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="Проверить" Command="{Binding Path=LoadedCommand}" Margin="0">
-                        <MenuItem.Icon>
-                            <materialDesign:PackIcon Kind="Refresh" />
+                            <iconPacks:PackIconModern Kind="Delete" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator/>
-                    <MenuItem IsEnabled="False" Header="Редактировать профиль" ToolTip="В разработке" Command="{Binding Path=EditProfileCommand}" Margin="0">
+                    <MenuItem Header="Редактировать профиль" ToolTip="В разработке" Command="{Binding EditProfileCommand}" Margin="0">
                         <MenuItem.Icon>
-                            <materialDesign:PackIcon Kind="User" />
+                            <iconPacks:PackIconModern Kind="User" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Скрыть/Показать окно" Command="{Binding Path=ShowViewCommand}" Margin="0">
+                    <MenuItem IsEnabled="True" Header="Настройки" Command="{Binding SettingsCommand}" Margin="0">
                         <MenuItem.Icon>
-                            <materialDesign:PackIcon Kind="Window" />
+                            <iconPacks:Modern Kind="Settings" />
                         </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Скрыть/Показать окно" Command="{Binding ShowViewCommand}" Margin="0">
+                        <!--<MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="Window" />
+                        </MenuItem.Icon>-->
+                    </MenuItem>
+                    <MenuItem Header="Что нового" Command="{Binding ShowNewVersionCommand}" Margin="0">
+                        <!--<MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="QuestionMark" />
+                        </MenuItem.Icon>-->
                     </MenuItem>
                     <MenuItem Header="Выход" Command="{x:Static commands:MainCommands.ApplicationClose}" Margin="0">
-                        <MenuItem.Icon>
+                        <!--<MenuItem.Icon>
                             <materialDesign:PackIcon Kind="ExitToApp" />
-                        </MenuItem.Icon>
+                        </MenuItem.Icon>-->
                     </MenuItem>
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>
-        <materialDesign:DialogHost Panel.ZIndex="999" OverlayBackground="Black" Identifier="addProfile" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
-                                <materialDesign:DialogHost.DialogContentTemplate>
-                                    <DataTemplate>
-                                        <views:AddProfileView Width="600" Height="450" />
-                                    </DataTemplate>
-                                </materialDesign:DialogHost.DialogContentTemplate>
-                            </materialDesign:DialogHost>
-    <Grid IsEnabled="{Binding Path=IsBusy, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource InvertBooleanConverter}}" Margin="5">
-        <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        
-        <Grid Grid.Row="0">
+        <Grid IsEnabled="{Binding Path=IsBusy, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}" Margin="5">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
                 <RowDefinition/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Grid Grid.Row="2" Grid.RowSpan="2">
-                <metro:ProgressRing VerticalAlignment="Center" Width="30" Height="30" Margin="0 20 0 0" IsActive="{Binding IsBusy, UpdateSourceTrigger=PropertyChanged}" />
-            </Grid>
+
             <Grid Grid.Row="0">
-                <Grid Margin="0 5">
-                    <Grid.RowDefinitions>
-                        <RowDefinition/>
-                        <RowDefinition Height="auto"/>
-                    </Grid.RowDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="2" Grid.RowSpan="2">
+                    <ui:ProgressRing VerticalAlignment="Center" Width="30" Height="30" Margin="0 20 0 0" Foreground="DodgerBlue" IsActive="{Binding IsBusy, UpdateSourceTrigger=PropertyChanged}" />
+                </Grid>
+                <Grid Grid.Row="0">
+                    <Grid Margin="0 5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
                         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Grid.Row="1">
                             <Button
                                 ToolTip="Новый профиль"
-                                Command="{Binding Path=AddProfileCommand}"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Command="{Binding AddProfileCommand}"
+                                Content="Новый профиль"
                                 Margin="0 0 3 0">
-                                <Button.Content>
-                                    <materialDesign:PackIcon Kind="PlusCircle" Foreground="LightGreen"/>
-                                </Button.Content>
                             </Button>
-                            <Button ToolTip="Редиктировать профиль"
+                            <Button ToolTip="Редактировать профиль"
                                     Margin="3 0 3 0"  
-                                    Command="{Binding Path=EditProfileCommand}">
-                                <Button.Content>
-                                    <materialDesign:PackIcon Kind="Edit"/>
-                                </Button.Content>
+                                    Content="Редактировать профиль"
+                                    Command="{Binding EditProfileCommand}">
                             </Button>
                             <Button ToolTip="Удалить профиль"
+                                    Content="Удалить профиль"
                                     Command="{Binding DeleteProfileCommand}">
-                                <Button.Content>
-                                    <materialDesign:PackIcon Kind="DeleteForever" Foreground="White"/>
-                                </Button.Content>
                             </Button>
                         </StackPanel>
 
-                    <ComboBox Grid.Row="0" Margin="0 0 0 10"
-                        materialDesign:HintAssist.Hint="{Binding Path=CurrentProfile.InstallLocation, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                        Style="{StaticResource MaterialDesignOutlinedComboBox}" VerticalAlignment="Center"
-                        SelectedItem="{Binding Path=CurrentProfile, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="Name" IsEditable="False"
+                        <ComboBox Grid.Row="0" Margin="0 0 0 10"
+                         VerticalAlignment="Center" HorizontalAlignment="Stretch"
+                        SelectedItem="{Binding Path=ProfileStore.CurrentProfile, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="Name" IsEditable="False"
                         ItemsSource="{Binding Path=AppSettings.Profiles}">
-                        <b:Interaction.Triggers>
-                            <b:EventTrigger EventName="SelectionChanged">
-                                <b:InvokeCommandAction Command="{Binding ProfileSelectedCommand}"/>
-                            </b:EventTrigger>
-                        </b:Interaction.Triggers>
-                    </ComboBox>
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger EventName="SelectionChanged">
+                                    <b:InvokeCommandAction Command="{Binding ProfileSelectedCommand}"/>
+                                </b:EventTrigger>
+                            </b:Interaction.Triggers>
+                        </ComboBox>
+                    </Grid>
                 </Grid>
-            </Grid>
-            <Grid Grid.Row="1" Margin="0 10 0 0">
-                <Image Source="../Images/logo.png" HorizontalAlignment="Center"
-                       VerticalAlignment="Center" Width="75" 
+                <Grid Grid.Row="1" Margin="0 10 0 0">
+                    <Image Source="../Images/logo.png" HorizontalAlignment="Center"
+                       VerticalAlignment="Center" Width="150" 
                 SnapsToDevicePixels="True" Margin="5"></Image>
-            </Grid>
-
-            <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Center">
-                <TextBlock Text="{Binding TextVersionInfo, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
-            </StackPanel>
-        </Grid>
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                <Grid ToolTip="{Binding Path=UpdateToolTipText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
-                <Button
-                        HorizontalAlignment="Center"
-                        Visibility="{Binding Path=IsNeedInstall, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource InverseBoolToVisConverter}}"
-                        Margin="2" Padding="10 3"
-                        ToolTip="{Binding Path=UpdateToolTipText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                        Content="{Binding Path=UpdateText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                        Command="{Binding UpdateCommand}"/>
                 </Grid>
-                <Button
-                    Visibility="{Binding Path=IsNeedInstall, Converter={StaticResource VisibilityConverter}}"
-                    HorizontalAlignment="Center"
-                    Margin="2"
-                    Padding="10 3"
-                    ToolTip="Установить"
-                    Command="{Binding InstallCommand}">
-                    <Button.Content>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock>Установить</TextBlock>
-                            <materialDesign:PackIcon Kind="Download" Margin="3 0" Foreground="White"/>
-                        </StackPanel>
-                    </Button.Content>
-                </Button>
-                <Button
-                    HorizontalAlignment="Center" 
-                    Margin="2"
-                    Padding="10 3"
-                    ToolTip="Принудительно установить"
-                    Command="{Binding Path=InstallForceCommand}">
-                    <Button.Content>
-                        <materialDesign:PackIcon Kind="Downloads" Foreground="White"/>
-                    </Button.Content>
+
+                <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding AddonStore.TextVersionInfo, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+                </StackPanel>
+            </Grid>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Grid ToolTip="{Binding Path=AddonStore.UpdateToolTipText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                        <Button
+                             VerticalContentAlignment="Center"
+                            Margin="2"
+                            Padding="10 4.5"
+                        HorizontalAlignment="Center"
+                        ToolTip="{Binding Path=AddonStore.UpdateToolTipText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                        Content="{Binding Path=AddonStore.UpdateText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, TargetNullValue='Обновить', FallbackValue='Обновить'}"
+                        Command="{Binding UpdateCommand}"/>
+
+                    </Grid>
+                    <Button
+                        HorizontalAlignment="Center"
+                        Margin="2"
+                        Padding="10 4.5"
+                        Visibility="Visible"
+                        ToolTip="Установить"
+                        Content="Установить"
+                        Style="{StaticResource AccentButtonStyle}"
+                        Command="{Binding InstallCommand}"/>
+                    <Button
+                        HorizontalAlignment="Center" 
+                        Margin="2"
+                            Content="Переустановить"
+                        ToolTip="Переустановить"
+                        Command="{Binding InstallForceCommand}"/>
+                    <Button 
+                        HorizontalAlignment="Right"
+                        Margin="2"
+                        ToolTip="Проверить наличие новой версии аддона"
+                        Content="Проверить"
+                        Command="{Binding LoadedCommand}">
                     </Button>
-                <Button 
+                    <Button 
                     HorizontalAlignment="Right"
                     Margin="2"
-                    Padding="10 3"
-                    ToolTip="Проверить"
-                    Command="{Binding LoadedCommand}">
-                    <Button.Content>
-                        <materialDesign:PackIcon Kind="Refresh"/>
-                    </Button.Content>
-                </Button>
-                <Button 
-                    HorizontalAlignment="Right"
-                    Margin="2"
-                    Padding="10 3"
+                    ToolTip="Удалить аддон"
+                    Content="Удалить"
                     Command="{Binding DeleteCommand}">
-                    <Button.Content>
-                        <materialDesign:PackIcon Kind="DeleteForever" Foreground="#ff2222"/>
-                    </Button.Content>
-                </Button>
-            </StackPanel>
-            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button 
+                    </Button>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource AccentButtonStyle}"
                     HorizontalAlignment="Right"
                     Margin="2"
-                    Padding="10 3"
                     Command="{Binding SettingsCommand}">
-                    <Button.Content>
-                        <materialDesign:PackIcon Kind="Settings"/>
-                    </Button.Content>
-                </Button>
-            </StackPanel>
+                        <Button.Content>
+                            <iconPacks:PackIconModern Kind="Settings"/>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
+            </Grid>
+            <ProgressBar Grid.Row="2" Minimum="0" Maximum="1" IsIndeterminate="{Binding AddonStore.IsInstalling, UpdateSourceTrigger=PropertyChanged}"
+                Value="{Binding Path=AddonStore.Progress, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                Visibility="{Binding AddonStore.IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
         </Grid>
-        <ProgressBar Grid.Row="2" Minimum="0" Maximum="1" IsIndeterminate="{Binding IsInstalling, UpdateSourceTrigger=PropertyChanged}"
-                     Value="{Binding Path=Progress, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                     Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-    </Grid>
     </Grid>
 </base:BaseView>

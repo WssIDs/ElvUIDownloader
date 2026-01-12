@@ -1,94 +1,107 @@
-﻿using System.Diagnostics;
-using System.IO.Compression;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text.Json;
-using System.Threading;
-using ElvUIDownloader.Commands;
+﻿using ElvUIDownloader.Commands;
 using ElvUIDownloader.Models;
-using ElvUIDownloader.Models.Web;
 using ElvUIDownloader.Services;
+using ElvUIDownloader.Stores;
 using ElvUIDownloader.Utils;
+using ModernWpf;
+using System.Diagnostics;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading;
+using System.Windows.Media;
 
 namespace ElvUIDownloader.ViewModels;
 
 public class MainViewModel : ViewModelBase
 {
     private readonly RegistryService _registryService;
-    private readonly UpdateService _updateService;
-    private string _title;
-    private ElvUiModel? _elvUi;
-    private bool _isNeedUpdate;
-    private bool _isNeedInstall;
+    public UpdateAddonService UpdateAddonService { get; }
+    public UpdateApplicationService UpdateApplicationService { get; }
 
-    private CancellationTokenSource _token;
-    
     /// <summary>
     /// 
     /// </summary>
     /// <param name="appSettings"></param>
     /// <param name="registryService"></param>
-    /// <param name="updateService"></param>
-    public MainViewModel(AppSettings appSettings, RegistryService registryService, UpdateService updateService)
+    /// <param name="profileStore"></param>
+    /// <param name="addonStore"></param>
+    /// <param name="updateAddonService"></param>
+    /// <param name="updateApplicationService"></param>
+    public MainViewModel(AppSettings appSettings, RegistryService registryService,
+        ProfileStore profileStore,
+        AddonStore addonStore,
+        ApplicationStore applicationStore,
+        UpdateAddonService updateAddonService,
+        UpdateApplicationService updateApplicationService)
     {
+        ProfileStore = profileStore;
+        AddonStore = addonStore;
+        ApplicationStore = applicationStore;
+
+        UpdateApplicationService = updateApplicationService;
+        UpdateAddonService = updateAddonService;
         _registryService = registryService;
-        _updateService = updateService;
-        
+
         UpdateToolTipText = "Обновить";
         UpdateText = "Обновить";
 
-        _token = new CancellationTokenSource();
-
         AppSettings = appSettings;
         var defaultProfile = AppSettings.CurrentProfile;
-        CurrentProfile = AppSettings.Profiles.First(p => p.Name == defaultProfile);
+        ProfileStore.CurrentProfile = AppSettings.Profiles.FirstOrDefault(p => p.Name == defaultProfile);
 
-        IsSelectedProfile = true;// = CurrentProfile != null;
+        IsSelectedProfile = true; // = ProfileStore.CurrentProfile != null;
 
-        var executingAssembly = Assembly.GetExecutingAssembly();
-        AppVersion = FileVersionInfo.GetVersionInfo(executingAssembly.Location).ProductVersion ?? string.Empty;
+        Title = $"Профиль - {defaultProfile} - {ApplicationStore.Version}";
 
-        Title = $"Профиль - {defaultProfile} - {AppVersion}";
-
-        if (AppSettings.StartMinimize)
-        {
-            DialogService.Hide<MainViewModel>();
-            IsVisible = false;
-            CheckAppUpdate(_token.Token).FireAndForgetSafeAsync();
-            CheckAddonUpdate(_token.Token).FireAndForgetSafeAsync();
-        }
-        else
+        if (!AppSettings.StartMinimize)
         {
             DialogService.UnHide<MainViewModel>();
             IsVisible = true;
         }
     }
 
-    private ProfileModel? _currentProfile;
-    private string _pathToAddons;
-    private bool _isBusy;
-    private float _progress;
-    private bool _isDownloading;
-    private bool _isInstalling;
-    private string _updateToolTipText;
-    private string _updateText;
-    private string _textVersionInfo;
-    private bool _isSelectedProfile;
-    private AppSettings _appSettings;
-    private string _appVersion;
-    private bool _isVisible;
+    private ProfileStore _profileStore = null!;
 
+    public ProfileStore ProfileStore
+    {
+        get => _profileStore;
+        set => Set(ref _profileStore, value);
+    }
+
+    private AddonStore _addonStore = null!;
+
+    public AddonStore AddonStore
+    {
+        get => _addonStore;
+        set => Set(ref _addonStore, value);
+    }
+
+    private ApplicationStore _applicationStore = null!;
+
+    public ApplicationStore ApplicationStore
+    {
+        get => _applicationStore;
+        set => Set(ref _applicationStore, value);
+    }
+
+    private bool _isBusy;
+    private string _updateToolTipText = string.Empty;
+    private string _updateText = string.Empty;
+    private bool _isSelectedProfile;
+    private AppSettings _appSettings = null!;
+    private bool _isVisible;
+    private bool _isUpdateAppTaskRunning;
+
+    public bool IsUpdateAppTaskRunning
+    {
+        get => _isUpdateAppTaskRunning;
+        set => Set(ref _isUpdateAppTaskRunning, value);
+    }
 
     public bool IsVisible
     {
         get => _isVisible;
-        set => SetField(ref _isVisible, value);
-    }
-
-    public string AppVersion
-    {
-        get => _appVersion;
-        set => SetField(ref _appVersion, value);
+        set => Set(ref _isVisible, value);
     }
 
     public AppSettings AppSettings
@@ -96,7 +109,7 @@ public class MainViewModel : ViewModelBase
         get => _appSettings;
         set
         {
-            if (SetField(ref _appSettings, value))
+            if (Set(ref _appSettings, value))
             {
                 OnPropertyChanged(nameof(InstallCommand));
                 OnPropertyChanged(nameof(UpdateCommand));
@@ -105,19 +118,10 @@ public class MainViewModel : ViewModelBase
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public string TextVersionInfo
-    {
-        get => _textVersionInfo;
-        set => SetField(ref _textVersionInfo, value);
-    }
-
     public bool IsSelectedProfile
     {
         get => _isSelectedProfile;
-        set => SetField(ref _isSelectedProfile, value);
+        set => Set(ref _isSelectedProfile, value);
     }
 
     /// <summary>
@@ -126,89 +130,30 @@ public class MainViewModel : ViewModelBase
     public string UpdateToolTipText
     {
         get => _updateToolTipText;
-        set => SetField(ref _updateToolTipText, value);
+        set => Set(ref _updateToolTipText, value);
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
     public string UpdateText
     {
         get => _updateText;
-        set => SetField(ref _updateText, value);
+        set => Set(ref _updateText, value);
     }
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    public ProfileModel? CurrentProfile
-    {
-        get => _currentProfile;
-        set
-        {
-            if (!SetField(ref _currentProfile, value)) return;
-            if (_currentProfile != null)
-            {
-                _appSettings.CurrentProfile = _currentProfile.Name;
-            }
-        }
-    }
+
+    private string _title = string.Empty;
 
     public string Title
     {
         get => _title;
-        set => SetField(ref _title, value);
-    }
-
-    /// <summary>
-    /// /
-    /// </summary>
-    public ElvUiModel? ElvUi
-    {
-        get => _elvUi;
-        set => SetField(ref _elvUi, value);
-    }
-
-    public bool IsNeedUpdate
-    {
-        get => _isNeedUpdate;
-        set => SetField(ref _isNeedUpdate, value);
-    }
-
-    public bool IsNeedInstall
-    {
-        get => _isNeedInstall;
-        set => SetField(ref _isNeedInstall, value);
-    }
-
-    public string PathToAddons
-    {
-        get => _pathToAddons;
-        set => SetField(ref _pathToAddons, value);
+        set => Set(ref _title, value);
     }
 
     public bool IsBusy
     {
         get => _isBusy;
-        set =>SetField(ref _isBusy, value);
-    }
-
-    public float Progress
-    {
-        get => _progress;
-        set => SetField(ref _progress, value);
-    }
-
-    public bool IsDownloading
-    {
-        get => _isDownloading;
-        set => SetField(ref _isDownloading, value);
-    }
-
-    public bool IsInstalling
-    {
-        get => _isInstalling;
-        set => SetField(ref _isInstalling, value);
+        set => Set(ref _isBusy, value);
     }
 
     /// <summary>
@@ -219,9 +164,11 @@ public class MainViewModel : ViewModelBase
         new AsyncCommand(async (r) =>
         {
             IsBusy = true;
-            await CheckAddonAsync();
+
+            await UpdateAddonService.CheckAsync();
+
             IsBusy = false;
-        }, (r) => !IsBusy || IsSelectedProfile);
+        }, (r) => (!IsBusy || IsSelectedProfile) && ProfileStore.CurrentProfile != null);
 
 
     /// <summary>
@@ -229,64 +176,77 @@ public class MainViewModel : ViewModelBase
     /// </summary>
     /// <exception cref="Exception"></exception>
     public AsyncCommand InstallCommand =>
-        new AsyncCommand(async (r) =>
+        new(async _ =>
         {
             try
             {
                 IsBusy = true;
 
-                await InstallAddonAsync();
+                await UpdateAddonService.InstallAsync();
+                await UpdateAddonService.CheckAsync();
 
                 IsBusy = false;
             }
-            catch (Exception exception)
+            catch (Exception)
             {
                 IsBusy = false;
             }
-        }, (r) => IsBusy == false );
-    
-    
+        },
+            (r) => {
+
+                var res = IsBusy == false && ProfileStore.CurrentProfile != null && AddonStore.Mode == EAddonMode.NeedInstall;
+
+                Debug.WriteLine($"Can Install - {res}");
+
+                return res;
+            });
+
+
     /// <summary>
     /// 
     /// </summary>
     /// <exception cref="Exception"></exception>
     public AsyncCommand InstallForceCommand =>
-        new AsyncCommand(async (r) =>
+        new(async _ =>
         {
             try
             {
                 IsBusy = true;
 
-                await InstallAddonAsync();
+                await DeleteCommand.ExecuteAsync();
+
+                await UpdateAddonService.InstallAsync();
+                await UpdateAddonService.CheckAsync();
 
                 IsBusy = false;
             }
-            catch (Exception exception)
+            catch (Exception)
             {
                 IsBusy = false;
             }
         }, (r) =>
         {
             if (IsBusy) return false;
-            return CurrentProfile is { IsForceInstall: true };
+            return ProfileStore.CurrentProfile is { IsForceInstall: true, IsInstalled: true };
         });
-    
+
     /// <summary>
     /// 
     /// </summary>
     /// <exception cref="Exception"></exception>
     public AsyncCommand UpdateCommand =>
-        new AsyncCommand(async (r) =>
+        new(async _ =>
         {
             try
             {
                 IsBusy = true;
 
-                await UpdateAddonAsync();
+                //await UpdateAddonService.InstallAsync();
+                await UpdateAddonService.CheckAsync();
 
                 IsBusy = false;
             }
-            catch (Exception exception)
+            catch (Exception)
             {
                 IsBusy = false;
             }
@@ -294,100 +254,105 @@ public class MainViewModel : ViewModelBase
         {
             if (IsBusy) return false;
 
-            if (!IsNeedUpdate)
+            if (_addonStore.Mode != EAddonMode.NeedUpdate)
             {
-                if (CurrentProfile is { IsInstalled: true, IsForceUpdate: true })
+                if (ProfileStore.CurrentProfile is { IsInstalled: true, IsForceUpdate: true })
                 {
                     return true;
                 }
 
-                if (CurrentProfile is { IsInstalled: true, IsForceUpdate: false })
+                if (ProfileStore.CurrentProfile is { IsInstalled: true, IsForceUpdate: false })
                 {
                     return false;
                 }
 
-                if(CurrentProfile is { IsInstalled: false, IsForceUpdate: true })
+                if (ProfileStore.CurrentProfile is { IsInstalled: false, IsForceUpdate: true })
                 {
                     return false;
                 }
             }
 
-            return CurrentProfile is { IsForceUpdate: true } || IsNeedUpdate;
+            return ProfileStore.CurrentProfile is { IsForceUpdate: true } || _addonStore.Mode == EAddonMode.NeedUpdate;
         });
-    
-    
-    
+
+
+
     /// <summary>
     /// 
     /// </summary>
     /// <exception cref="Exception"></exception>
     public AsyncCommand DeleteCommand =>
-        new AsyncCommand(async (r) =>
+        new(async _ =>
         {
             try
             {
                 IsBusy = true;
-                
-                if (ElvUi != null)
+
+                if (AddonStore.ElvUi != null)
                 {
-                    foreach (var dir in ElvUi.directories
-                                 .Select(elvUiDirectory => Path.Combine(PathToAddons, elvUiDirectory))
+                    foreach (var dir in AddonStore.ElvUi.Directories
+                                 .Select(elvUiDirectory => Path.Combine(AddonStore.PathToAddons, elvUiDirectory))
                                  .Where(Directory.Exists))
                     {
                         Directory.Delete(dir, true);
                     }
 
-                    if (CurrentProfile != null)
+                    if (ProfileStore.CurrentProfile != null)
                     {
-                        CurrentProfile.Date = null;
-                        CurrentProfile.Version = null;
-                        await AppSettings.SaveProfileAsync(CurrentProfile);
+                        ProfileStore.CurrentProfile.Date = null;
+                        ProfileStore.CurrentProfile.Version = null;
+                        await AppSettings.SaveProfileAsync(ProfileStore.CurrentProfile);
                     }
 
-                    await CheckAddonAsync();
+                    await UpdateAddonService.CheckAsync();
                 }
 
                 IsBusy = false;
             }
-            catch (Exception exception)
+            catch (Exception)
             {
                 IsBusy = false;
             }
-        }, (r) => IsBusy == false );
+        }, (r) => 
+        IsBusy == false && AddonStore.ElvUi != null && AddonStore.Mode == EAddonMode.Installed);
 
-    
-    public AsyncCommand DeleteProfileCommand
-    {
-        get => new AsyncCommand(async (r) =>
+
+    public AsyncCommand DeleteProfileCommand =>
+        new(async _ =>
         {
+            if(ProfileStore.CurrentProfile != null)
             {
                 var name = Assembly.GetExecutingAssembly().GetName().Name;
-                var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),name);
+                var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), name ?? string.Empty);
 
                 var dirInfo = new DirectoryInfo(dir);
-                    
-                var fi = new FileInfo(Path.Combine(dirInfo.FullName, $"{CurrentProfile.Name}.prof"));
+
+                var fi = new FileInfo(Path.Combine(dirInfo.FullName, $"{ProfileStore.CurrentProfile.Name}.prof"));
 
                 if (fi.Exists)
                 {
                     fi.Delete();
                 }
 
-                _appSettings.Profiles.Remove(CurrentProfile);
-                CurrentProfile = _appSettings.Profiles.First();
-                _appSettings.CurrentProfile = CurrentProfile.Name;
+                _appSettings.Profiles.Remove(ProfileStore.CurrentProfile);
+                ProfileStore.CurrentProfile = _appSettings.Profiles.First();
+                _appSettings.CurrentProfile = ProfileStore.CurrentProfile.Name;
 
                 await using (var stream = new FileStream("appsettings.json", FileMode.Create, FileAccess.Write,
                                  FileShare.Write))
                 {
-                    await JsonSerializer.SerializeAsync(stream, _appSettings.Profiles);
+                    var options = new JsonSerializerOptions
+                    {
+                        Converters = { new JsonStringEnumConverter() }
+                    };
+
+                    await JsonSerializer.SerializeAsync(stream, _appSettings.Profiles, options);
                 }
-                
-                Title = $"Профиль - {_appSettings.CurrentProfile} - {AppVersion}";
-                await CheckAddonAsync();
+
+                Title = $"Профиль - {_appSettings.CurrentProfile} - {ApplicationStore.Version}";
+                await UpdateAddonService.CheckAsync();
             }
         }, CanDeleteProfileCommandExecute);
-    }
 
     private bool CanDeleteProfileCommandExecute(object? param)
     {
@@ -395,148 +360,148 @@ public class MainViewModel : ViewModelBase
         return res;
     }
 
-    public AsyncCommand AddProfileCommand
-    {
-        get => new AsyncCommand(async (r) =>
+    public AsyncCommand AddProfileCommand =>
+        new(async _ =>
         {
-            var vm = DialogService.GetViewModel<AddProfileViewModel>();
-            vm.Profile = new ProfileModel();
-            vm.Profile.Type = vm.Types.First();
-            vm.InstalledWows = (await _registryService.GetWows()).Select(di => di.FullName).ToList();
-            vm.SelectedInstalledWow = vm.InstalledWows.FirstOrDefault();
-            
-            await DialogHost.Show(vm, "addProfile", (sender, args) =>
+            await DialogService.ShowDialog<AddProfileViewModel>(async vm =>
             {
-                Console.WriteLine(args.Source);
-            }, (sender, args) =>
-            {
-                Console.WriteLine(args);
-            }, async (sender, args) =>
-            {
-                bool? res = args.Parameter == null ? null : Convert.ToBoolean(args.Parameter);
-                
-                if (res == true)
+                vm.Profile = new ProfileModel
                 {
-                    IsBusy = true;
-                    
-                    AppSettings.Profiles.Add(vm.Profile);
-                    _appSettings.CurrentProfile = vm.Profile.Name;
-                    await AppSettings.SaveProfileAsync(vm.Profile);
-                   
-                    var name = Assembly.GetExecutingAssembly().GetName().Name;
-                    var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                        name!);
-                    
-                    await using (var stream = new FileStream(Path.Combine(dir,"appsettings.json"), FileMode.Create, FileAccess.Write,
-                                     FileShare.Write))
-                    {
-                        await JsonSerializer.SerializeAsync(stream, _appSettings);
-                    }
-                    
-                    CurrentProfile = vm.Profile;
-                    Title = $"Профиль - {_appSettings.CurrentProfile} - {AppVersion}";
-                    await CheckAddonAsync();
+                    Type = vm.Types.First()
+                };
+                vm.InstalledWows = (await _registryService.GetWows()).Select(di => di.FullName).ToList();
+                vm.SelectedInstalledWow = vm.InstalledWows.FirstOrDefault();
+            }, postClosingAction: async (vm, res) =>
+            {
 
-                    IsBusy = false;
-                }
-                Console.WriteLine(args.Parameter);
-            });
-        });
-    }
-    
-    public AsyncCommand EditProfileCommand
-    {
-        get => new AsyncCommand(async (r) =>
-        {
-            var vm = DialogService.GetViewModel<AddProfileViewModel>();
-
-            var oldProfile = new ProfileModel
-            {
-                Name = CurrentProfile.Name,
-                Type = CurrentProfile.Type,
-                InstallLocation = CurrentProfile.InstallLocation,
-                Version = CurrentProfile.Version,
-                IsForceInstall = CurrentProfile.IsForceInstall,
-                IsForceUpdate = CurrentProfile.IsForceUpdate,
-                Date = CurrentProfile.Date
-            };
-            
-            vm.Title = "Редактировать профиль";
-            vm.OkButton = "Изменить";
-            vm.Profile = CurrentProfile;
-            vm.InstalledWows = (await _registryService.GetWows()).Select(di => di.FullName).ToList();
-            vm.SelectedInstalledWow = vm.InstalledWows.FirstOrDefault(f => f == CurrentProfile.InstallLocation);
-            
-            await DialogHost.Show(vm, "addProfile", (sender, args) =>
-            {
-                Console.WriteLine(args.Source);
-            }, (sender, args) =>
-            {
-                Console.WriteLine(args);
-            }, async (sender, args) =>
-            {
-                var res = Convert.ToBoolean(args.Parameter);
-                
                 if (res)
                 {
                     IsBusy = true;
 
+                    AppSettings.Profiles.Add(vm.Profile);
+                    _appSettings.CurrentProfile = vm.Profile.Name;
+                    await AppSettings.SaveProfileAsync(vm.Profile);
+
                     var name = Assembly.GetExecutingAssembly().GetName().Name;
-                    var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    var dir = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                         name!);
 
-                    var dirInfo = new DirectoryInfo(dir);
-                    
-                    var fi = new FileInfo(Path.Combine(dirInfo.FullName, $"{_appSettings.CurrentProfile}.prof"));
-
-                    if (fi.Exists)
-                    {
-                        fi.Delete();
-                    }
-
-                    _appSettings.CurrentProfile = CurrentProfile.Name;
-                    await using (var stream = new FileStream(Path.Combine(dir,"appsettings.json"), FileMode.Create, FileAccess.Write,
+                    await using (var stream = new FileStream(Path.Combine(dir, "appsettings.json"), FileMode.Create,
+                                     FileAccess.Write,
                                      FileShare.Write))
                     {
-                        await JsonSerializer.SerializeAsync(stream, _appSettings);
+                        var options = new JsonSerializerOptions
+                        {
+                            Converters = { new JsonStringEnumConverter() }
+                        };
+
+                        await JsonSerializer.SerializeAsync(stream, _appSettings, options);
                     }
 
-                    await AppSettings.SaveProfileAsync(CurrentProfile);
-                    
-                    Title = $"Профиль - {_appSettings.CurrentProfile} - {AppVersion}";
-                    
-                    await CheckAddonAsync();
-                    
+                    ProfileStore.CurrentProfile = vm.Profile;
+                    Title = $"Профиль - {_appSettings.CurrentProfile} - {ApplicationStore.Version}";
+                    await UpdateAddonService.CheckAsync();
+
                     IsBusy = false;
                 }
-                else
-                {
-                    CurrentProfile.Name = oldProfile.Name;
-                    CurrentProfile.Type = oldProfile.Type;
-                    CurrentProfile.InstallLocation = oldProfile.InstallLocation;
-                    CurrentProfile.Version = oldProfile.Version;
-                    CurrentProfile.IsForceInstall = oldProfile.IsForceInstall;
-                    CurrentProfile.IsForceUpdate = oldProfile.IsForceUpdate;
-                    CurrentProfile.Date = oldProfile.Date;
-                    
-                    Title = $"Профиль - {_appSettings.CurrentProfile} - {AppVersion}";
-                    
-                    await AppSettings.SaveProfileAsync(CurrentProfile);
-                }
-                Console.WriteLine(args.Parameter);
             });
         });
-    }
 
-    public AsyncCommand ProfileSelectedCommand
-    {
-        get => new AsyncCommand(async (r) =>
+    public AsyncCommand EditProfileCommand =>
+        new(async _ =>
+        {
+            if (ProfileStore.CurrentProfile != null)
+            {
+                var oldProfile = new ProfileModel
+                {
+                    Name = ProfileStore.CurrentProfile.Name,
+                    Type = ProfileStore.CurrentProfile.Type,
+                    InstallLocation = ProfileStore.CurrentProfile.InstallLocation,
+                    Version = ProfileStore.CurrentProfile.Version,
+                    IsForceInstall = ProfileStore.CurrentProfile.IsForceInstall,
+                    IsForceUpdate = ProfileStore.CurrentProfile.IsForceUpdate,
+                    Date = ProfileStore.CurrentProfile.Date
+                };
+
+                await DialogService.ShowDialog<AddProfileViewModel>(async vm =>
+                {
+                    vm.Title = "Редактировать профиль";
+                    vm.OkButton = "Изменить";
+                    vm.Profile = ProfileStore.CurrentProfile;
+                    vm.InstalledWows = (await _registryService.GetWows()).Select(di => di.FullName).ToList();
+                    vm.SelectedInstalledWow = vm.InstalledWows.FirstOrDefault(f => f == ProfileStore.CurrentProfile.InstallLocation);
+                }, postClosingAction: async (vm, res) =>
+                {
+
+                    if (res)
+                    {
+                        IsBusy = true;
+
+                        var name = Assembly.GetExecutingAssembly().GetName().Name;
+                        var dir = Path.Combine(
+                            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                            name!);
+
+                        var dirInfo = new DirectoryInfo(dir);
+
+                        var fi = new FileInfo(Path.Combine(dirInfo.FullName, $"{_appSettings.CurrentProfile}.prof"));
+
+                        if (fi.Exists)
+                        {
+                            fi.Delete();
+                        }
+
+                        _appSettings.CurrentProfile = ProfileStore.CurrentProfile.Name;
+                        await using (var stream = new FileStream(Path.Combine(dir, "appsettings.json"), FileMode.Create,
+                                         FileAccess.Write,
+                                         FileShare.Write))
+                        {
+                            var options = new JsonSerializerOptions
+                            {
+                                Converters = { new JsonStringEnumConverter() }
+                            };
+
+                            await JsonSerializer.SerializeAsync(stream, _appSettings, options);
+                        }
+
+                        await AppSettings.SaveProfileAsync(ProfileStore.CurrentProfile);
+
+                        Title = $"Профиль - {_appSettings.CurrentProfile} - {ApplicationStore.Version}";
+
+                        await UpdateAddonService.CheckAsync();
+
+                        IsBusy = false;
+                    }
+                    else
+                    {
+                        ProfileStore.CurrentProfile.Name = oldProfile.Name;
+                        ProfileStore.CurrentProfile.Type = oldProfile.Type;
+                        ProfileStore.CurrentProfile.InstallLocation = oldProfile.InstallLocation;
+                        ProfileStore.CurrentProfile.Version = oldProfile.Version;
+                        ProfileStore.CurrentProfile.IsForceInstall = oldProfile.IsForceInstall;
+                        ProfileStore.CurrentProfile.IsForceUpdate = oldProfile.IsForceUpdate;
+                        ProfileStore.CurrentProfile.Date = oldProfile.Date;
+
+                        Title = $"Профиль - {_appSettings.CurrentProfile} - {ApplicationStore.Version}";
+
+                        await AppSettings.SaveProfileAsync(ProfileStore.CurrentProfile);
+                    }
+                });
+            }
+
+        }, o => ProfileStore.CurrentProfile != null);
+
+    public AsyncCommand ProfileSelectedCommand =>
+        new(async _ =>
         {
             try
             {
                 IsBusy = true;
+
                 await UpdateSelectedAsync();
-                await CheckAddonAsync();
+                await UpdateAddonService.CheckAsync();
+
                 IsBusy = false;
             }
             catch (Exception e)
@@ -549,11 +514,9 @@ public class MainViewModel : ViewModelBase
             }
 
         });
-    }
 
-    public AsyncCommand ShowViewCommand
-    {
-        get => new AsyncCommand(async (r) =>
+    public AsyncCommand ShowViewCommand =>
+        new(async _ =>
         {
             DialogService.ToggleHide<MainViewModel>();
             IsVisible = !IsVisible;
@@ -561,381 +524,153 @@ public class MainViewModel : ViewModelBase
             var name = Assembly.GetExecutingAssembly().GetName().Name;
             var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 name!);
-            
+
             if (!IsVisible)
             {
                 AppSettings.StartMinimize = true;
-                
-                _token = new CancellationTokenSource();
-                CheckAppUpdate(_token.Token).FireAndForgetSafeAsync();
-                CheckAddonUpdate(_token.Token).FireAndForgetSafeAsync();
+                AddonStore.ElapsedTime.Start();
+                ApplicationStore.ElapsedTime.Start();
             }
             else
             {
                 AppSettings.StartMinimize = false;
-                _token.Cancel();
+                AddonStore.ElapsedTime.Stop();
+                ApplicationStore.ElapsedTime.Stop();
             }
-            
-            await using var stream =
-                new FileStream(Path.Combine(dir, "appsettings.json"), FileMode.Create, FileAccess.Write, FileShare.Write);
-            await JsonSerializer.SerializeAsync(stream, _appSettings);
-            
-        });
-    }
 
-    public AsyncCommand ClosingCommand
-    {
-        get => new AsyncCommand(async (r) =>
+            await using var stream =
+                new FileStream(Path.Combine(dir, "appsettings.json"), FileMode.Create, FileAccess.Write,
+                    FileShare.Write);
+            await JsonSerializer.SerializeAsync(stream, _appSettings);
+
+        });
+
+    public AsyncCommand ShowNewVersionCommand =>
+        new(async _ =>
+        {
+            DialogService.Show<NewVersionViewModel>();
+        });
+
+    public AsyncCommand ClosingCommand =>
+        new(async _ =>
         {
             DialogService.Hide<MainViewModel>();
             AppSettings.StartMinimize = true;
             var name = Assembly.GetExecutingAssembly().GetName().Name;
             var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 name!);
-                
+
             await using var stream =
-                new FileStream(Path.Combine(dir, "appsettings.json"), FileMode.Create, FileAccess.Write, FileShare.Write);
-            await JsonSerializer.SerializeAsync(stream, _appSettings);
-            
+                new FileStream(Path.Combine(dir, "appsettings.json"), FileMode.Create, FileAccess.Write,
+                    FileShare.Write);
+
+            var options = new JsonSerializerOptions
+            {
+                Converters = { new JsonStringEnumConverter() }
+            };
+
+            await JsonSerializer.SerializeAsync(stream, _appSettings, options);
+
             IsVisible = false;
-
-            _token = new CancellationTokenSource();
-            CheckAppUpdate(_token.Token).FireAndForgetSafeAsync();
-            CheckAddonUpdate(_token.Token).FireAndForgetSafeAsync();
-            
+            AddonStore.ElapsedTime.Start();
+            ApplicationStore.ElapsedTime.Start();
         });
-    }
 
-    public AsyncCommand SettingsCommand
+    public AsyncCommand SettingsCommand => new AsyncCommand(async _ =>
     {
-        get => new AsyncCommand(async (r) =>
+        await DialogService.ShowDialog<SettingsViewModel>(async vm =>
         {
-            
-        });
-    }
-    
-    private async Task UpdateSelectedAsync(CancellationToken token = default)
-    {
-        _appSettings.CurrentProfile = CurrentProfile.Name;
-        await _appSettings.SaveProfileAsync(CurrentProfile);
-                
-        var name = Assembly.GetExecutingAssembly().GetName().Name;
-        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            name!);
-                
-        await using var stream =
-            new FileStream(Path.Combine(dir, "appsettings.json"), FileMode.Create, FileAccess.Write, FileShare.Write);
-        await JsonSerializer.SerializeAsync(stream, _appSettings, cancellationToken: token);
-                
-        Title = $"Профиль - {_appSettings.CurrentProfile} - {AppVersion}";
-    }
-    
-    private async Task DownloadAndReplace(string downloadUrl, string destinationUrl, CancellationToken token = default)
-    {
-        using var downloadClient = new HttpClient();
+            vm.StartMinimized = _appSettings.StartMinimize;
+            vm.CurrentProfile = _appSettings.CurrentProfile;
 
-        IsInstalling = true;
-        IsDownloading = true;
-        
-        var responseMessage = await downloadClient.GetAsync(downloadUrl, token);
-        var fileName = responseMessage.Content.Headers.ContentDisposition?.FileName;
+            vm.Theme = AppSettings.Theme;
+            vm.UseSystemAccentColor = AppSettings.UseSystemAccentColor;
 
-        if (fileName != null)
-        {
-            IsInstalling = false;
-            await using var stream = new MemoryStream();
-
-            IProgress<float> progress = new Progress<float>(p => { Progress = p; });
-            await downloadClient.DownloadAsync(downloadUrl, stream, progress, cancellationToken: token);
-
-            IsInstalling = true;
-
-            await Task.Run(async () =>
+            if (!string.IsNullOrEmpty(AppSettings.AccentColor))
             {
-                using var arch = new ZipArchive(stream, ZipArchiveMode.Read);
+                var color = (Color)ColorConverter.ConvertFromString(AppSettings.AccentColor);
 
-                var dir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "Downloads"));
-
-                if (dir.Exists)
+                // Если цвет был добавлен пользовательски
+                var foundNewColor = vm.AccentColors.FirstOrDefault(x => x.Color == color);
+                if (foundNewColor == null)
                 {
-                    foreach (var directoryInfo in dir.GetDirectories())
-                    {
-                        directoryInfo.Delete(true);
-                    }
+                    vm.AccentColors.Add(new SolidColorBrush(color));
+
+                    foundNewColor = vm.AccentColors.FirstOrDefault(x => x.Color == color);
                 }
+                //else
+                //{
+                vm.AccentColor = foundNewColor;
+                //}
+            }
 
-                if (!dir.Exists)
-                {
-                    dir.Create();
-                }
+            vm.UpdateApplicationSettings.Type = AppSettings.UpdateAppInfo.Type;
+            vm.UpdateApplicationSettings.Interval = AppSettings.UpdateAppInfo.Interval;
 
-                arch.ExtractToDirectory(dir.FullName);
+            vm.UpdateAddonSettings.Type = AppSettings.UpdateAddonInfo.Type;
+            vm.UpdateAddonSettings.Interval = AppSettings.UpdateAddonInfo.Interval;
 
-                foreach (var dirInfoLocal in dir.GetDirectories())
-                {
-                    var destDir = new DirectoryInfo(Path.Combine(destinationUrl, dirInfoLocal.Name));
-
-                    if (destDir.Exists)
-                    {
-                        destDir.Delete(true);
-                    }
-
-                    await DirectoryInfoEx.CopyFilesRecursivelyAsync(dirInfoLocal.FullName, destDir.FullName);
-                }
-
-                dir.Delete(true);
-            }, token);
-
-            IsInstalling = false;
-            IsDownloading = false;
-        }
-    }
-    
-    private async Task CheckAddonAsync(CancellationToken token = default)
-    {
-        try
+        }, postClosingAction: async (vm, res) =>
         {
-            if(token.IsCancellationRequested) return;
-
-            if (CurrentProfile == null) return;
-            
-            var pathApp = CurrentProfile.InstallLocation ?? string.Empty;
-            var pathType = CurrentProfile.Type == "Retail" ? "_retail_" : "_classic_";
-
-            const string pathAddons = "Interface\\AddOns";
-
-            PathToAddons = Path.Combine(pathApp, pathType, pathAddons);
-
-            using var client = new HttpClient();
-            client.BaseAddress = new Uri("https://api.tukui.org/v1/");
-            
-            ElvUi = await client.GetFromJsonAsync<ElvUiModel>("addon/elvui", cancellationToken: token);
-
-            if (ElvUi != null)
+            if (res)
             {
-                var addonName = ElvUi.directories.FirstOrDefault();
+                AppSettings.Theme = vm.Theme;
+                AppSettings.UseSystemAccentColor = vm.UseSystemAccentColor;
+                AppSettings.AccentColor = vm.AccentColor?.Color.ToString();
 
-                if (!string.IsNullOrEmpty(addonName))
-                {
-                    var dir = new DirectoryInfo(Path.Combine(PathToAddons, addonName));
+                AppSettings.UpdateAppInfo.Type = vm.UpdateApplicationSettings.Type;
+                AppSettings.UpdateAppInfo.Interval = vm.UpdateApplicationSettings.Interval;
 
-                    if (dir.Exists)
-                    {
-                        IsNeedInstall = false;
-                        CurrentProfile.IsInstalled = true;
-                        var path = Path.Combine(dir.FullName, "ElvUI_Classic.toc");
-
-                        var fileInfo = new FileInfo(path);
-
-                        if (fileInfo.Exists)
-                        {
-                            var existedLine =
-                                (await File.ReadAllLinesAsync(fileInfo.FullName, token)).FirstOrDefault(c =>
-                                    c.Contains("Version"));
-
-                            if (!string.IsNullOrEmpty(existedLine))
-                            {
-                                var versionStr = existedLine.Replace(" ", string.Empty).Replace("#", string.Empty)
-                                    .Split(":")
-                                    .LastOrDefault();
-
-                                if (!string.IsNullOrEmpty(versionStr))
-                                {
-                                    var version = Version.Parse(versionStr);
-                                    var versionNew = Version.Parse(ElvUi.version);
-
-                                    if (version >= versionNew)
-                                    {
-                                        TextVersionInfo = $"Текущая версия {versionNew}";
-                                        UpdateText = CurrentProfile.IsForceUpdate ? "Актуально(Обновить)" : "Актуально";
-                                        IsNeedUpdate = false;
-                                    }
-                                    else
-                                    {
-                                        TextVersionInfo = $"Доступна новая версия {versionNew}";
-                                        UpdateText = "Обновить";
-                                        IsNeedUpdate = true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        TextVersionInfo = "Аддон отсутствует";
-                        
-                        IsNeedUpdate = false;
-                        IsNeedInstall = true;
-
-                        Debug.WriteLine("Аддон отсутствует, нужна установка");
-                    }
-                }
+                AppSettings.UpdateAddonInfo.Type = vm.UpdateApplicationSettings.Type;
+                AppSettings.UpdateAddonInfo.Interval = vm.UpdateAddonSettings.Interval;
             }
             else
             {
-                IsNeedUpdate = false;
-                throw new Exception("информация об аддоне не найден на сайте");
-            }
-            
-            UpdateToolTipText = $"Обновлено {CurrentProfile.Date:dd.MM:yyyy}";
-        }
-        catch (Exception exception)
-        {
-            IsNeedUpdate = false;
-            Debug.WriteLine(exception.ToString());
-        }
-    }
-
-    private async Task CheckAppUpdate(CancellationToken token = default)
-    {
-        while (!token.IsCancellationRequested)
-        {
-            Debug.WriteLine("Проверка обновления приложения");
-            await _updateService.RunAsync(token);
-            Debug.WriteLine("Проверка обновления приложения завершена");
-            await Delay(AppSettings.UpdateAppInfo, token);
-        }
-        
-        Debug.WriteLine("Проверка обновления приложения отмена");
-    }
-    
-    private async Task CheckAddonUpdate(CancellationToken token = default)
-    {
-        while (!token.IsCancellationRequested)
-        {
-            Debug.WriteLine("Проверка обновления аддона");
-
-            IsBusy = true;
-            
-            await CheckAddonAsync(token);
-
-            IsBusy = false;
-
-            //if (IsNeedInstall || IsNeedUpdate)
-            //{
-                var processes = Process.GetProcesses().Where(p => string.Equals(p.ProcessName, "Wow", StringComparison.CurrentCultureIgnoreCase)).ToList();
-
-                if (processes.Count > 0)
+                // Возвращаем обратно тему и цвета
+                if (AppSettings.Theme == EApplicationTheme.System)
                 {
-                    foreach (var process in processes)
-                    {
-                        if (CurrentProfile != null)
-                        {
-                            if (process.MainModule != null)
-                            {
-                                if (!string.IsNullOrEmpty(process.MainModule.FileName) &&
-                                    !string.IsNullOrEmpty(CurrentProfile.InstallLocation))
-                                {
-                                    if (process.MainModule.FileName.Contains(CurrentProfile.InstallLocation))
-                                    {
-                                        var processId = process.Id;
-                                        Debug.WriteLine($"{process.Id} - {process.MainModule.FileName} - запущена");
-                                        await process.WaitForExitAsync(token);
-                                        Debug.WriteLine($"{processId} - exited");
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    ThemeManager.Current.ApplicationTheme = null;
                 }
-                //}
-            
-            if (IsNeedInstall)
-            {
-                Debug.WriteLine("Проверка установки аддона");
-                await InstallAddonAsync(token);
-                Debug.WriteLine("Аддон установлен");
+                else
+                {
+                    ThemeManager.Current.ApplicationTheme = (ApplicationTheme)AppSettings.Theme;
+                }
+
+                if (AppSettings.UseSystemAccentColor)
+                {
+                    ThemeManager.Current.AccentColor = null;
+                }
+                else
+                {
+                    var color = (Color)ColorConverter.ConvertFromString(AppSettings.AccentColor);
+                    ThemeManager.Current.AccentColor = color;
+                }
             }
+        });
+    });
 
-            if (IsNeedUpdate)
-            {
-                Debug.WriteLine("Требуется обновление аддона");
-                await UpdateAddonAsync(token);
-                Debug.WriteLine("Аддон обновлен");
-            }
-
-            Debug.WriteLine("Проверка обновления аддона завершена");
-            await Delay(AppSettings.UpdateAddonInfo, token);
-        }
-        
-        Debug.WriteLine("Проверка обновления аддона отмена");
-    }
-
-    private async Task Delay(UpdateInfoModel model, CancellationToken token = default)
+    private async Task UpdateSelectedAsync(CancellationToken token = default)
     {
-        switch (model.Type)
+        if (ProfileStore.CurrentProfile != null)
         {
-            case "FromMilliseconds":
+            _appSettings.CurrentProfile = ProfileStore.CurrentProfile.Name;
+            await _appSettings.SaveProfileAsync(ProfileStore.CurrentProfile, token);
+
+            var name = Assembly.GetExecutingAssembly().GetName().Name;
+            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                name!);
+
+            await using var stream =
+                new FileStream(Path.Combine(dir, "appsettings.json"), FileMode.Create, FileAccess.Write, FileShare.Write);
+
+            var options = new JsonSerializerOptions
             {
-                await Task.Delay(TimeSpan.FromMilliseconds(model.Interval), token);
-                break;               
-            }
-            case "Minutes":
-            {
-                await Task.Delay(TimeSpan.FromMinutes(model.Interval), token);
-                break;
-            }
-            case "Seconds":
-            {
-                await Task.Delay(TimeSpan.FromSeconds(model.Interval), token);
-                break;
-            }
-            case "Hours":
-            {
-                await Task.Delay(TimeSpan.FromHours(model.Interval), token);
-                break;               
-            }
-            case "Days":
-            {
-                await Task.Delay(TimeSpan.FromDays(model.Interval), token);
-                break;               
-            }
-            default:
-            {
-                await Task.Delay(TimeSpan.FromMinutes(model.Interval), token);
-                break;  
-            }
-        }
-    }
+                Converters = { new JsonStringEnumConverter() }
+            };
 
-    public async Task UpdateAddonAsync(CancellationToken token = default)
-    {
-        if (ElvUi != null)
-        {
-            if(token.IsCancellationRequested) return;
-            
-            await DownloadAndReplace(ElvUi.url, PathToAddons, token);
+            await JsonSerializer.SerializeAsync(stream, _appSettings, options, cancellationToken: token);
 
-            CurrentProfile.Date = DateTime.Now;
-            CurrentProfile.Version = ElvUi.version;
-
-            if(token.IsCancellationRequested) return;
-            
-            await AppSettings.SaveProfileAsync(CurrentProfile);
-
-            await CheckAddonAsync(token);
-        }
-    }
-
-    public async Task InstallAddonAsync(CancellationToken token = default)
-    {
-        if (ElvUi != null)
-        {
-            if(token.IsCancellationRequested) return;
-            
-            await DownloadAndReplace(ElvUi.url, PathToAddons, token);
-
-            if (CurrentProfile != null)
-            {
-                CurrentProfile.Date = DateTime.Now;
-                CurrentProfile.Version = ElvUi.version;
-
-                if (token.IsCancellationRequested) return;
-
-                await AppSettings.SaveProfileAsync(CurrentProfile);
-            }
-
-            await CheckAddonAsync(token);
+            Title = $"Профиль - {_appSettings.CurrentProfile} - {ApplicationStore.Version}";
         }
     }
 }

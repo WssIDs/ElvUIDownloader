@@ -12,12 +12,6 @@ public interface IAsyncCommand : ICommand
     /// </summary>
     /// <returns></returns>
     Task ExecuteAsync(object? param);
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    bool CanExecute(object? param);
 
     /// <summary>
     /// 

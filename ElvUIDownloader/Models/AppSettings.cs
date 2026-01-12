@@ -1,32 +1,49 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
+using System.Windows.Media;
+using ElvUIDownloader.Models.Abstraction;
 using ElvUIDownloader.Utils;
+using ElvUIDownloader.ViewModels;
 
 namespace ElvUIDownloader.Models;
 
 /// <summary>
 /// 
 /// </summary>
-public class AppSettings
+public class AppSettings : ModelBase
 {
     private readonly RegistryService _registryService;
     
     public AppSettings(RegistryService registryService)
     {
         _registryService = registryService;
-        UpdateAppInfo = new UpdateInfoModel
-        {
-            Interval = 180
-        };
-        UpdateAddonInfo = new UpdateInfoModel
-        {
-            Interval = 45
-        };
+        //UpdateAppInfo = new UpdateInfoModel
+        //{
+        //    Interval = 180
+        //};
+        //UpdateAddonInfo = new UpdateInfoModel
+        //{
+        //    Interval = 45
+        //};
     }
     
     public bool StartMinimize { get; set; }
-    
+
+    public EApplicationTheme Theme { get; set; } = EApplicationTheme.System;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public bool UseSystemAccentColor { get; set; } = true;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public string? AccentColor { get; set; } = null;
+
     /// <summary>
     /// 
     /// </summary>
@@ -35,28 +52,30 @@ public class AppSettings
     /// <summary>
     /// 
     /// </summary>
-    public UpdateInfoModel UpdateAppInfo { get; set; }
-    
+    public UpdateInfoModel UpdateAppInfo { get; set; } = new();
+
+
+    private UpdateInfoModel _updateAddonInfo = new();
+
     /// <summary>
     /// 
     /// </summary>
-    public UpdateInfoModel UpdateAddonInfo { get; set; }
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    public string KeyToken { get; set; } = string.Empty;
+    public UpdateInfoModel UpdateAddonInfo
+    {
+        get => _updateAddonInfo;
+        set => Set(ref _updateAddonInfo, value);
+    }
 
     /// <summary>
     /// 
     /// </summary>
     [JsonIgnore]
-    public ObservableCollection<ProfileModel> Profiles { get; set; } = new();
+    public ObservableCollection<ProfileModel> Profiles { get; set; } = [];
 
     public async Task LoadProfilesAsync()
     {
         var name = Assembly.GetExecutingAssembly().GetName().Name;
-        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),name);
+        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), name!);
 
 
         if (!Directory.Exists(dir))
@@ -72,7 +91,12 @@ public class AppSettings
         {
             var data = await File.ReadAllTextAsync(profileFile.FullName);
 
-            var profile = JsonSerializer.Deserialize<ProfileModel>(data);
+            var options = new JsonSerializerOptions
+            {
+                Converters = { new JsonStringEnumConverter() }
+            };
+
+            var profile = JsonSerializer.Deserialize<ProfileModel>(data, options);
             if (profile != null)
             {
                 Profiles.Add(profile);
@@ -94,7 +118,7 @@ public class AppSettings
                     var newProfile = new ProfileModel
                     {
                         Name = CurrentProfile,
-                        Type = "retail",
+                        Type = EGameType.Retail,
                         InstallLocation = wow.FullName,
                         IsForceInstall = true,
                         IsForceUpdate = true
@@ -128,37 +152,87 @@ public class AppSettings
         }
     }
     
-    public async Task SaveProfileAsync(ProfileModel profile)
+    public async Task SaveProfileAsync(ProfileModel profile, CancellationToken cancellationToken = default)
     {
         var name = Assembly.GetExecutingAssembly().GetName().Name;
-        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), name);
+        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), name!);
 
 
         if (!Directory.Exists(dir))
         {
             Directory.CreateDirectory(dir);
         }
-        
-        var data = JsonSerializer.Serialize(profile);
-        await File.WriteAllTextAsync(Path.Combine(dir, $"{profile.Name}.prof"), data);
+
+        var options = new JsonSerializerOptions
+        {
+            Converters = { new JsonStringEnumConverter() }
+        };
+
+        var data = JsonSerializer.Serialize(profile, options);
+        await File.WriteAllTextAsync(Path.Combine(dir, $"{profile.Name}.prof"), data, cancellationToken);
     }
 }
 
-public class UpdateInfoModel
+public class UpdateInfoModel : ViewModelBase
 {
     public UpdateInfoModel()
     {
-        Type = "Minutes";
+        Type = ETypeInterval.Minutes;
         Interval = 60;
     }
-    
+
+    private ETypeInterval _type;
+
     /// <summary>
     /// 
     /// </summary>
-    public string Type { get; set; }
+    public ETypeInterval Type
+    {
+        get => _type;
+        set => Set(ref _type, value);
+    }
     
+    private int _interval;
+
     /// <summary>
     /// 
     /// </summary>
-    public int Interval { get; set; }
+    public int Interval
+    {
+        get => _interval;
+        set => Set(ref _interval, value);
+    }
+
+    public TimeSpan GetTimeInterval()
+    {
+        var time = Type switch
+        {
+            //ETypeInterval.Milliseconds => TimeSpan.FromMilliseconds(Interval),
+            ETypeInterval.Minutes => TimeSpan.FromMinutes(Interval),
+            ETypeInterval.Seconds => TimeSpan.FromSeconds(Interval),
+            ETypeInterval.Hours => TimeSpan.FromHours(Interval),
+            ETypeInterval.Days => TimeSpan.FromDays(Interval),
+            _ => TimeSpan.FromMinutes(Interval)
+        };
+
+        return time;
+    }
+}
+
+public enum ETypeInterval
+{
+    //[Description("Милисекунды")]
+    //Milliseconds,
+
+    [Description("Секунды")]
+    Seconds,
+
+    [Description("Минуты")]
+    Minutes,
+
+    [Description("Часы")]
+    Hours,
+
+    [Description("Дни")]
+    Days
 }

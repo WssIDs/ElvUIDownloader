@@ -7,4 +7,3 @@ global using System.Linq;
 global using System.Reflection;
 global using System.Threading.Tasks;
 global using ElvUIDownloader.ViewModels.Base;
-global using MaterialDesignThemes.Wpf;

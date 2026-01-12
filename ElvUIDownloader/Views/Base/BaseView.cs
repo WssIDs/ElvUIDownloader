@@ -1,5 +1,4 @@
 ﻿using System.Windows;
-using MahApps.Metro.Controls;
 
 namespace ElvUIDownloader.Views.Base;
 
@@ -16,7 +15,7 @@ public interface IWindow
 /// <summary>
 /// 
 /// </summary>
-public class BaseView : MetroWindow, IWindow
+public class BaseView : Window, IWindow
 {
     public void ShowView()
     {

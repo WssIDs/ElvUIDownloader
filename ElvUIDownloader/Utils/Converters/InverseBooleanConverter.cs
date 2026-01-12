@@ -2,7 +2,6 @@
 
 namespace ElvUIDownloader.Utils.Converters;
 
-[ValueConversion(typeof(bool), typeof(bool))]
 public class InverseBooleanConverter: IValueConverter
 {
     #region IValueConverter Members

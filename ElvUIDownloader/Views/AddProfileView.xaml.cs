@@ -1,9 +1,9 @@
-﻿using System.Windows.Controls;
-using MahApps.Metro.Controls;
+﻿using ElvUIDownloader.Views.Base;
+using System.Windows.Controls;
 
 namespace ElvUIDownloader.Views;
 
-public partial class AddProfileView : UserControl
+public partial class AddProfileView : BaseView
 {
     public AddProfileView()
     {

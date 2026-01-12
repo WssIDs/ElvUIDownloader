@@ -1,6 +1,6 @@
-﻿using System.Windows;
+﻿using System.Diagnostics;
+using System.Windows;
 using ElvUIDownloader.Views.Base;
-using MahApps.Metro.Controls.Dialogs;
 using Meziantou.Framework.Win32;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -38,30 +38,108 @@ public class DialogService
         return _serviceProvider.GetRequiredService<T>();
     }
     
-    public void Show<T>() where T : ViewModelBase
+    public void Show<T>(Func<T, Task>? preLoadingAction = null, Func<T, Task>? postLoadingAction = null, Func<T, Task>? postClosingAction = null) where T : ViewModelBase
     {
         var name = typeof(T).Name.Replace("Model", string.Empty);
         var vm = _serviceProvider.GetRequiredService<T>();
+
+        preLoadingAction?.Invoke(vm);
 
         var type = Assembly.GetExecutingAssembly().GetTypes().FirstOrDefault(t => t.Name == name);
 
         if (type == null) return;
         if (_serviceProvider.GetRequiredKeyedService(type, name) is not BaseView view) return;
         view.DataContext = vm;
+
+        view.Loaded += View_Loaded;
+        view.Closed += View_Closed;
         view.Show();
+
+        void View_Loaded(object sender, RoutedEventArgs args)
+        {
+            postLoadingAction?.Invoke(vm);
+            view.Loaded -= View_Loaded;
+        }
+
+        void View_Closed(object? sender, EventArgs e)
+        {
+            postClosingAction?.Invoke(vm);
+            view.Closed -= View_Closed;
+        }
     }
-    
-    public void ShowHidden<T>() where T : ViewModelBase
+
+    public async Task ShowDialog<T>(Func<T, Task>? preLoadingAction = null, Func<T, Task>? postLoadingAction = null, Func<T, bool, Task>? postClosingAction = null) where T : ViewModelBase
     {
+        var wnd = Application.Current.Windows.OfType<BaseView>().LastOrDefault(w => w.IsActive);
+
+        //if (wnd == null) return;
+
         var name = typeof(T).Name.Replace("Model", string.Empty);
+
         var vm = _serviceProvider.GetRequiredService<T>();
+
+        preLoadingAction?.Invoke(vm);
 
         var type = Assembly.GetExecutingAssembly().GetTypes().FirstOrDefault(t => t.Name == name);
 
         if (type == null) return;
         if (_serviceProvider.GetRequiredKeyedService(type, name) is not BaseView view) return;
-        view.DataContext = vm;
+
+        if (wnd != null)
+        {
+            view.Owner = wnd;
+        }
+        else
+        {
+            view.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        }
+        
+        view.SetContext(vm);
+
+        var result = false;
+
+        view.Loaded += View_Loaded;
+        var res = view.ShowDialog();
+
+        result = res == true;
+
+        postClosingAction?.Invoke(vm, result);
+
+        void View_Loaded(object sender, RoutedEventArgs args)
+        {
+            postLoadingAction?.Invoke(vm);
+            view.Loaded -= View_Loaded;
+        }
+    }
+
+    public void ShowHidden<T>(Func<T, Task>? preLoadingAction = null, Func<T, Task>? postLoadingAction = null, Func<T, Task>? postClosingAction = null) where T : ViewModelBase
+    {
+        var name = typeof(T).Name.Replace("Model", string.Empty);
+        var vm = _serviceProvider.GetRequiredService<T>();
+
+        preLoadingAction?.Invoke(vm);
+
+        var type = Assembly.GetExecutingAssembly().GetTypes().FirstOrDefault(t => t.Name == name);
+
+        if (type == null) return;
+        if (_serviceProvider.GetRequiredKeyedService(type, name) is not BaseView view) return;
+        view.SetContext(vm);
+
+        view.Loaded += View_Loaded;
+        view.Closed += View_Closed;
         //view.Show();
+
+        void View_Loaded(object sender, RoutedEventArgs args)
+        {
+            postLoadingAction?.Invoke(vm);
+            view.Loaded -= View_Loaded;
+        }
+
+        void View_Closed(object? sender, EventArgs e)
+        {
+            postClosingAction?.Invoke(vm);
+            view.Closed -= View_Closed;
+        }
     }
 
     public void ToggleHide<T>() where T : ViewModelBase
