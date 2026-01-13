@@ -24,10 +24,10 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<FileVersion>1.2.0</FileVersion>
-		<AssemblyVersion>1.2.0</AssemblyVersion>
-		<ProductVersion>1.2.0</ProductVersion>
-		<Version>1.2.0</Version>
+		<FileVersion>1.2.1</FileVersion>
+		<AssemblyVersion>1.2.1</AssemblyVersion>
+		<ProductVersion>1.2.1</ProductVersion>
+		<Version>1.2.1</Version>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
