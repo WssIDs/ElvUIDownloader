@@ -35,10 +35,10 @@ public class UpdateApplicationBackgroundService : BaseBackgroundService
     {
         //Logger.LogInformation($"{sender.GetType()} {e.PropertyName} - changed");
 
-        if(e.PropertyName == nameof(AppSettings.UpdateAppInfo.Interval))
-        {
+        //if(e.PropertyName == nameof(AppSettings.UpdateAppInfo.Interval))
+        //{
             _applicationStore.ElapsedTime.Time = _appSettings.UpdateAppInfo.GetTimeInterval();
-        }
+        //}
     }
 
     public override async Task RunAsync(CancellationToken cancellationToken = default)

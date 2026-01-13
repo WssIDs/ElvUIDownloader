@@ -36,10 +36,10 @@ public class UpdateAddonBackgroundService : BaseBackgroundService
     {
         //Logger.LogInformation($"{sender.GetType()} {e.PropertyName} - changed");
 
-        if(e.PropertyName == nameof(AppSettings.UpdateAddonInfo.Interval))
-        {
+        //if(e.PropertyName == nameof(AppSettings.UpdateAddonInfo.Interval))
+        //{
             _updateAddonStore.ElapsedTime.Time = _appSettings.UpdateAddonInfo.GetTimeInterval();
-        }
+        //}
     }
 
     public override async Task RunAsync(CancellationToken cancellationToken = default)

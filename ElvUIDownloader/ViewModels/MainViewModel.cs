@@ -338,7 +338,12 @@ public class MainViewModel : ViewModelBase
                 ProfileStore.CurrentProfile = _appSettings.Profiles.First();
                 _appSettings.CurrentProfile = ProfileStore.CurrentProfile.Name;
 
-                await using (var stream = new FileStream("appsettings.json", FileMode.Create, FileAccess.Write,
+                var appDir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    name!);
+
+                await using (var stream = new FileStream(Path.Combine(appDir, "appsettings.json"), FileMode.Create,
+                                 FileAccess.Write,
                                  FileShare.Write))
                 {
                     var options = new JsonSerializerOptions
@@ -346,7 +351,7 @@ public class MainViewModel : ViewModelBase
                         Converters = { new JsonStringEnumConverter() }
                     };
 
-                    await JsonSerializer.SerializeAsync(stream, _appSettings.Profiles, options);
+                    await JsonSerializer.SerializeAsync(stream, _appSettings, options);
                 }
 
                 Title = $"Профиль - {_appSettings.CurrentProfile} - {ApplicationStore.Version}";
@@ -621,8 +626,25 @@ public class MainViewModel : ViewModelBase
                 AppSettings.UpdateAppInfo.Type = vm.UpdateApplicationSettings.Type;
                 AppSettings.UpdateAppInfo.Interval = vm.UpdateApplicationSettings.Interval;
 
-                AppSettings.UpdateAddonInfo.Type = vm.UpdateApplicationSettings.Type;
+                AppSettings.UpdateAddonInfo.Type = vm.UpdateAddonSettings.Type;
                 AppSettings.UpdateAddonInfo.Interval = vm.UpdateAddonSettings.Interval;
+
+                var name = Assembly.GetExecutingAssembly().GetName().Name;
+                var dir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    name!);
+
+                var dirInfo = new DirectoryInfo(dir);
+
+                await using var stream = new FileStream(Path.Combine(dir, "appsettings.json"), FileMode.Create,
+                                 FileAccess.Write,
+                                 FileShare.Write);
+                var options = new JsonSerializerOptions
+                {
+                    Converters = { new JsonStringEnumConverter() }
+                };
+
+                await JsonSerializer.SerializeAsync(stream, AppSettings, options);
             }
             else
             {
