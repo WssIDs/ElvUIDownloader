@@ -13,6 +13,7 @@
           xmlns:converters="clr-namespace:ElvUIDownloader.Utils.Converters"
           xmlns:views="clr-namespace:ElvUIDownloader.Views"
           xmlns:commands="clr-namespace:ElvUIDownloader.Commands"
+          xmlns:w="http://schemas.wssids.com/wpf/w/trayicon"
           BorderThickness="1"
           mc:Ignorable="d"
           Icon="/main.ico"
@@ -35,72 +36,75 @@
         </b:EventTrigger>
     </b:Interaction.Triggers>
     <Grid>
-        <tb:TaskbarIcon IconSource="../main.ico" DoubleClickCommand="{Binding ShowViewCommand}">
-            <tb:TaskbarIcon.TrayToolTip>
-                <Border Background="#222" CornerRadius="10" Padding="15">
-                    <StackPanel>
-                        <TextBlock>
-                            <Run Text="{Binding ApplicationStore.Name, UpdateSourceTrigger=PropertyChanged, StringFormat='\{0} '}" Foreground="White" FontSize="14"/>
-                            <Run Foreground="Green" FontWeight="Bold" Text="{Binding Path=ApplicationStore.Version, UpdateSourceTrigger=PropertyChanged}"/>
-                        </TextBlock>
-                        <TextBlock Margin="0 5 0 0" Foreground="White" FontSize="12" Text="{Binding Path=ProfileStore.CurrentProfile.Name, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue='Нет данных', StringFormat='Профиль - {0}'}"/>
-                        <TextBlock Margin="0 2 0 0" Foreground="White" FontSize="12">
-                            <Run Text="Версия ElvUI - "/>
-                            <Run FontWeight="Bold" Text="{Binding Path=ProfileStore.CurrentProfile.Version, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue='Нет данных', TargetNullValue='Не установлен'}">
-                                <Run.Style>
-                                     <Style TargetType="Run">
-                                         <Setter Property="Foreground" Value="Green"/>
-                                         <Style.Triggers>
-                                             <DataTrigger Binding="{Binding ProfileStore.CurrentProfile.Version, UpdateSourceTrigger=PropertyChanged}" Value="{x:Null}">
-                                                 <Setter Property="Foreground" Value="#fc3232"/>
-                                             </DataTrigger>
-                                         </Style.Triggers>
-                                     </Style>
-                                </Run.Style> 
-                            </Run>
-                            <Run Text="("/>
-                            <Run Text="{Binding Path=ProfileStore.CurrentProfile.Date, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, StringFormat='{}{0:dd.MM.yyyy}', FallbackValue='Нет данных', TargetNullValue='Нет данных'}"/>
-                            <Run Text=")"/>
-                        </TextBlock>
-                        <TextBlock Margin="0 2 0 0" Foreground="White" FontSize="12" Text="{Binding ProfileStore.CurrentProfile.InstallLocation, UpdateSourceTrigger=PropertyChanged, FallbackValue='Нет данных', Mode=TwoWay}" />
-                        <TextBlock Foreground="White" Visibility="{Binding AddonStore.ElapsedTime.IsRunning, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0 10 0 0">
-                            <Run Text="Проверка обновлений аддона - "/>
-                            <Run FontWeight="Bold" Text="{Binding AddonStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
-                                <Run.Style>
-                                    <Style TargetType="Run">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding AddonStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Converter={converters:TimeSpanToBooleanConverter}}" Value="True">
-                                                <Setter Property="Foreground" Value="#fc3232"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding AddonStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Converter={converters:TimeSpanToBooleanConverter}}" Value="False">
-                                              <Setter Property="Foreground" Value="Green"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Run.Style>    
-                            </Run>
-                        </TextBlock>
-                        <TextBlock Foreground="White" Visibility="{Binding ApplicationStore.ElapsedTime.IsRunning, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0 2 0 0">
-                            <Run Text="Проверка обновлений приложения - "/>
-                            <Run FontWeight="Bold" Text="{Binding ApplicationStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
-                                <Run.Style>
-                                    <Style TargetType="Run">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding ApplicationStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Converter={converters:TimeSpanToBooleanConverter}}" Value="True">
-                                                <Setter Property="Foreground" Value="#fc3232"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding ApplicationStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Converter={converters:TimeSpanToBooleanConverter}}" Value="False">
-                                              <Setter Property="Foreground" Value="Green"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Run.Style>    
-                            </Run>
-                        </TextBlock>
-                    </StackPanel>
-                </Border>
-            </tb:TaskbarIcon.TrayToolTip>
-            <tb:TaskbarIcon.ContextMenu>
+        <w:TrayIconControl x:Name="TrayIcon"
+            Icon="../main.ico"
+            IsShow="True"
+            CornerRadius="10"
+            Padding="15"
+            DoubleClickCommand="{Binding ShowViewCommand}">
+            <w:TrayIconControl.ToolTip>
+                <StackPanel>
+                    <TextBlock>
+                <Run Text="{Binding ApplicationStore.Name, UpdateSourceTrigger=PropertyChanged, StringFormat='\{0} '}" Foreground="White" FontSize="14"/>
+                <Run Foreground="Green" FontWeight="Bold" Text="{Binding Path=ApplicationStore.Version, UpdateSourceTrigger=PropertyChanged}"/>
+                    </TextBlock>
+                    <TextBlock Margin="0 5 0 0" Foreground="White" FontSize="12" Text="{Binding Path=ProfileStore.CurrentProfile.Name, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue='Нет данных', StringFormat='Профиль - {0}'}"/>
+                    <TextBlock Margin="0 2 0 0" Foreground="White" FontSize="12">
+                <Run Text="Версия ElvUI - "/>
+                <Run FontWeight="Bold" Text="{Binding Path=ProfileStore.CurrentProfile.Version, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue='Нет данных', TargetNullValue='Не установлен'}">
+                    <Run.Style>
+                         <Style TargetType="Run">
+                             <Setter Property="Foreground" Value="Green"/>
+                             <Style.Triggers>
+                                 <DataTrigger Binding="{Binding ProfileStore.CurrentProfile.Version, UpdateSourceTrigger=PropertyChanged}" Value="{x:Null}">
+                                     <Setter Property="Foreground" Value="#fc3232"/>
+                                 </DataTrigger>
+                             </Style.Triggers>
+                         </Style>
+                    </Run.Style> 
+                </Run>
+                <Run Text="("/>
+                <Run Text="{Binding Path=ProfileStore.CurrentProfile.Date, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, StringFormat='{}{0:dd.MM.yyyy}', FallbackValue='Нет данных', TargetNullValue='Нет данных'}"/>
+                <Run Text=")"/>
+                    </TextBlock>
+                    <TextBlock Margin="0 2 0 0" Foreground="White" FontSize="12" Text="{Binding ProfileStore.CurrentProfile.InstallLocation, UpdateSourceTrigger=PropertyChanged, FallbackValue='Нет данных', Mode=TwoWay}" />
+                    <TextBlock Foreground="White" Visibility="{Binding AddonStore.ElapsedTime.IsRunning, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0 10 0 0">
+                <Run Text="Проверка обновлений аддона - "/>
+                <Run FontWeight="Bold" Text="{Binding AddonStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                    <Run.Style>
+                        <Style TargetType="Run">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding AddonStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Converter={converters:TimeSpanToBooleanConverter}}" Value="True">
+                                    <Setter Property="Foreground" Value="#fc3232"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding AddonStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Converter={converters:TimeSpanToBooleanConverter}}" Value="False">
+                                  <Setter Property="Foreground" Value="Green"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Run.Style>    
+                </Run>
+                    </TextBlock>
+                    <TextBlock Foreground="White" Visibility="{Binding ApplicationStore.ElapsedTime.IsRunning, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0 2 0 0">
+                <Run Text="Проверка обновлений приложения - "/>
+                <Run FontWeight="Bold" Text="{Binding ApplicationStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                    <Run.Style>
+                        <Style TargetType="Run">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ApplicationStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Converter={converters:TimeSpanToBooleanConverter}}" Value="True">
+                                    <Setter Property="Foreground" Value="#fc3232"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding ApplicationStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Converter={converters:TimeSpanToBooleanConverter}}" Value="False">
+                                  <Setter Property="Foreground" Value="Green"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Run.Style>    
+                </Run>
+                    </TextBlock>
+                </StackPanel>
+            </w:TrayIconControl.ToolTip>
+            <w:TrayIconControl.ContextMenu>
                 <ContextMenu>
                     <MenuItem IsEnabled="False" ToolTip="Установлен" Command="{Binding UpdateCommand}" Margin="0">
                         <MenuItem.Header>
@@ -156,8 +160,8 @@
                         </MenuItem.Icon>-->
                     </MenuItem>
                 </ContextMenu>
-            </tb:TaskbarIcon.ContextMenu>
-        </tb:TaskbarIcon>
+            </w:TrayIconControl.ContextMenu>
+        </w:TrayIconControl>
         <Grid IsEnabled="{Binding Path=IsBusy, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}" Margin="5">
             <Grid.RowDefinitions>
                 <RowDefinition/>
