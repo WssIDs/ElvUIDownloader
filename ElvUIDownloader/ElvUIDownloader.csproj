@@ -24,10 +24,10 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<FileVersion>1.2.1</FileVersion>
-		<AssemblyVersion>1.2.1</AssemblyVersion>
-		<ProductVersion>1.2.1</ProductVersion>
-		<Version>1.2.1</Version>
+		<FileVersion>1.2.2</FileVersion>
+		<AssemblyVersion>1.2.2</AssemblyVersion>
+		<ProductVersion>1.2.2</ProductVersion>
+		<Version>1.2.2</Version>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -40,11 +40,11 @@
 
 	<ItemGroup>
       <PackageReference Include="MahApps.Metro.IconPacks.Modern" Version="6.2.1" />
-      <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
+      <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
       <PackageReference Include="Meziantou.Framework.Win32.Dialogs" Version="1.1.11" />
       <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
       <PackageReference Include="ModernWpfUI" Version="0.9.6" />
-      <PackageReference Include="W.TrayIcon.WPF" Version="1.0.6" />
+      <PackageReference Include="W.TrayIcon.WPF" Version="1.0.7" />
       <Resource Include="Images\logo.png" />
     </ItemGroup>
 
