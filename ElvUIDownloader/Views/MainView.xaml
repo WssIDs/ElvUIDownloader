@@ -42,7 +42,7 @@
             CornerRadius="10"
             Padding="15"
             DoubleClickCommand="{Binding ShowViewCommand}">
-            <w:TrayIconControl.ToolTip>
+            <w:TrayIconControl.TrayToolTip>
                 <StackPanel>
                     <TextBlock>
                 <Run Text="{Binding ApplicationStore.Name, UpdateSourceTrigger=PropertyChanged, StringFormat='\{0} '}" Foreground="White" FontSize="14"/>
@@ -103,7 +103,7 @@
                 </Run>
                     </TextBlock>
                 </StackPanel>
-            </w:TrayIconControl.ToolTip>
+            </w:TrayIconControl.TrayToolTip>
             <w:TrayIconControl.ContextMenu>
                 <ContextMenu>
                     <MenuItem IsEnabled="False" ToolTip="Установлен" Command="{Binding UpdateCommand}" Margin="0">
@@ -134,7 +134,7 @@
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator/>
-                    <MenuItem Header="Редактировать профиль" ToolTip="В разработке" Command="{Binding EditProfileCommand}" Margin="0">
+                    <MenuItem Header="Редактировать профиль" Command="{Binding EditProfileCommand}" Margin="0">
                         <MenuItem.Icon>
                             <iconPacks:PackIconModern Kind="User" />
                         </MenuItem.Icon>

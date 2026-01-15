@@ -2,16 +2,10 @@
 
 namespace YandexDisk.API.Client;
 
-public class AuthHandler : DelegatingHandler
+public class AuthHandler(ITokenStore tokenStore, ITokenService tokenService) : DelegatingHandler
 {
-    private readonly ITokenStore tokenStore;
-    private readonly ITokenService tokenService;
-
-    public AuthHandler(ITokenStore tokenStore, ITokenService tokenService)
-    {
-        this.tokenStore = tokenStore;
-        this.tokenService = tokenService;
-    }
+    private readonly ITokenStore tokenStore = tokenStore;
+    private readonly ITokenService tokenService = tokenService;
 
     protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
@@ -19,8 +13,8 @@ public class AuthHandler : DelegatingHandler
 
         Console.WriteLine($"Запрос: {request.Method} {request.RequestUri}");
         var response = await base.SendAsync(request, cancellationToken);
-        
-        if(response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+
+        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
         {
             var oAuthResponse = await tokenService.GetAccessTokenAsync(cancellationToken);
 
