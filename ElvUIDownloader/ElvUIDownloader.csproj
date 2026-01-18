@@ -24,10 +24,10 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<FileVersion>1.2.2</FileVersion>
-		<AssemblyVersion>1.2.2</AssemblyVersion>
-		<ProductVersion>1.2.2</ProductVersion>
-		<Version>1.2.2</Version>
+		<FileVersion>1.2.3</FileVersion>
+		<AssemblyVersion>1.2.3</AssemblyVersion>
+		<ProductVersion>1.2.3</ProductVersion>
+		<Version>1.2.3</Version>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -44,7 +44,8 @@
       <PackageReference Include="Meziantou.Framework.Win32.Dialogs" Version="1.1.11" />
       <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
       <PackageReference Include="ModernWpfUI" Version="0.9.6" />
-      <PackageReference Include="W.TrayIcon.WPF" Version="1.0.7" />
+      <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+      <PackageReference Include="W.TrayIcon.WPF" Version="1.0.8" />
       <Resource Include="Images\logo.png" />
     </ItemGroup>
 
