@@ -20,10 +20,11 @@ public class InstallApplicationBackgroundService : BaseBackgroundService
         ApplicationStore applicationStore,
         UpdateApplicationService updateApplicationService) : base(logger)
     {
-        WaitingTimeAfterCompleted = TimeSpan.FromSeconds(1);
+        //WaitingTimeAfterCompleted = TimeSpan.FromSeconds(1);
         _applicationStore = applicationStore;
         _updateApplicationService = updateApplicationService;
 
+        UseLogging = true;
         WaitingTimeAfterCompleted = TimeSpan.FromMinutes(5);
     }
 
@@ -33,7 +34,7 @@ public class InstallApplicationBackgroundService : BaseBackgroundService
         {
             Logger.LogInformation("Выполнение запуска установки приложения");
 
-            await _updateApplicationService.InstallAsync(true, cancellationToken);
+            //await _updateApplicationService.InstallAsync(true, cancellationToken);
 
             Logger.LogInformation("Установка приложения завершена");
         }

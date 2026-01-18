@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
+using System.Windows;
 using System.Windows.Media;
 
 namespace ElvUIDownloader.ViewModels;
@@ -167,9 +168,40 @@ public class MainViewModel : ViewModelBase
 
             await UpdateAddonService.CheckAsync();
 
+            await UpdateApplicationService.CheckAsync();
+
+            if (ApplicationStore.IsNeedUpdate)
+            {
+                MessageBox.Show($"Обновление загружено. Новая версия - {ApplicationStore.RemoteFileVersionFilename}\nОбновить?", "Обновление приложения",  MessageBoxButton.OKCancel, MessageBoxImage.Question);
+            }
+
             IsBusy = false;
         }, (r) => (!IsBusy || IsSelectedProfile) && ProfileStore.CurrentProfile != null);
 
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <exception cref="Exception"></exception>
+    public AsyncCommand CheckUpdateApplicationCommand =>
+        new(async (r) =>
+        {
+            IsBusy = true;
+
+            await UpdateApplicationService.CheckAsync();
+
+            if (ApplicationStore.IsNeedUpdate)
+            {
+                var result = MessageBox.Show($"Обновление загружено. Обновить?", "Обновление приложения", MessageBoxButton.OKCancel, MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    await UpdateApplicationService.InstallAsync(true);
+                }
+            }
+
+            IsBusy = false;
+        }, (r) => (!IsBusy || IsSelectedProfile) && ProfileStore.CurrentProfile != null);
 
     /// <summary>
     /// 

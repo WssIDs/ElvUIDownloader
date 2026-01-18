@@ -13,6 +13,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using ModernWpf;
+using Serilog;
+using Serilog.Events;
 using System.Configuration;
 using System.Diagnostics;
 using System.Net.Http;
@@ -58,7 +60,8 @@ namespace ElvUIDownloader
         {
             var builder = Host.CreateDefaultBuilder();
 
-            builder.ConfigureAppConfiguration((context, configBuilder) =>
+            builder
+                .ConfigureAppConfiguration((context, configBuilder) =>
                 {
                     const string applicationSettingsFileName = "appsettings.json";
 
@@ -79,6 +82,32 @@ namespace ElvUIDownloader
                             .SetBasePath(Directory.GetCurrentDirectory())
                             .AddJsonFile(applicationSettingsFileName, optional: false, reloadOnChange: true);
                     }
+                })
+                .UseSerilog((context, config) =>
+                {
+                    var name = Assembly.GetExecutingAssembly().GetName().Name;
+                    var dir = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        name!);
+
+                    if (!Directory.Exists(dir))
+                    {
+                        Directory.CreateDirectory(dir);
+                    }
+
+                    string logFilePath = Path.Combine(dir, "logs", "log-.log");
+
+                    config
+                        .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Debug) // Write Debug+ logs to the console
+                        .WriteTo.Debug()
+                        .WriteTo.File(
+                            path: logFilePath,
+                            rollingInterval: RollingInterval.Day, // Create a new log file daily
+                            restrictedToMinimumLevel: LogEventLevel.Debug, // Write Debug+ logs to the file
+                            rollOnFileSizeLimit: true,
+                            fileSizeLimitBytes: 10000000, // Limit file size to 10MB
+                            retainedFileCountLimit : 7
+                        );
                 })
                 .ConfigureServices((context, services) =>
                 {
@@ -189,10 +218,10 @@ namespace ElvUIDownloader
                             vm.AddonStore.ElapsedTime.Start();
                             vm.ApplicationStore.ElapsedTime.Start();
 
-                            var appTask = vm.UpdateApplicationService.CheckAsync(tokenSource.Token);
+                            //var appTask = vm.UpdateApplicationService.CheckAsync(tokenSource.Token);
                             var addonTask = vm.UpdateAddonService.CheckAsync(tokenSource.Token);
 
-                            await Task.WhenAll(appTask, addonTask);
+                            await Task.WhenAll(addonTask);
                         }
                         catch (Exception ex)
                         {
