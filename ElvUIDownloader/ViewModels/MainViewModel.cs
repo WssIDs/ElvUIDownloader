@@ -172,7 +172,12 @@ public class MainViewModel : ViewModelBase
 
             if (ApplicationStore.IsNeedUpdate)
             {
-                MessageBox.Show($"Обновление загружено. Новая версия - {ApplicationStore.RemoteFileVersionFilename}\nОбновить?", "Обновление приложения",  MessageBoxButton.OKCancel, MessageBoxImage.Question);
+                var result = MessageBox.Show($"Обновление загружено. Новая версия - {ApplicationStore.RemoteFileVersionFilename}\nОбновить?", "Обновление приложения",  MessageBoxButton.OKCancel, MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.OK)
+                {
+                    await UpdateApplicationService.InstallAsync(true);
+                }
             }
 
             IsBusy = false;
@@ -194,7 +199,7 @@ public class MainViewModel : ViewModelBase
             {
                 var result = MessageBox.Show($"Обновление загружено. Обновить?", "Обновление приложения", MessageBoxButton.OKCancel, MessageBoxImage.Question);
 
-                if (result == MessageBoxResult.Yes)
+                if (result == MessageBoxResult.OK)
                 {
                     await UpdateApplicationService.InstallAsync(true);
                 }

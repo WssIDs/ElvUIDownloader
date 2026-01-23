@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Windows;
+﻿using System.Windows;
 using ElvUIDownloader.Views.Base;
 using Meziantou.Framework.Win32;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,7 +36,7 @@ public class DialogService
     {
         return _serviceProvider.GetRequiredService<T>();
     }
-    
+
     public void Show<T>(Func<T, Task>? preLoadingAction = null, Func<T, Task>? postLoadingAction = null, Func<T, Task>? postClosingAction = null) where T : ViewModelBase
     {
         var name = typeof(T).Name.Replace("Model", string.Empty);
@@ -48,29 +47,31 @@ public class DialogService
         var type = Assembly.GetExecutingAssembly().GetTypes().FirstOrDefault(t => t.Name == name);
 
         if (type == null) return;
-        if (_serviceProvider.GetRequiredKeyedService(type, name) is not BaseView view) return;
-        view.DataContext = vm;
+        if (_serviceProvider.GetRequiredKeyedService(type, name) is not IWindow view) return;
 
-        view.Loaded += View_Loaded;
-        view.Closed += View_Closed;
-        view.Show();
+        view.SetContext(vm);
 
-        void View_Loaded(object sender, RoutedEventArgs args)
+        view.OnViewLoaded += View_Loaded;
+        view.OnViewLoaded += View_Closed;
+
+        view.ShowView();
+
+        void View_Loaded(object? sender, EventArgs args)
         {
             postLoadingAction?.Invoke(vm);
-            view.Loaded -= View_Loaded;
+            view.OnViewLoaded -= View_Loaded;
         }
 
         void View_Closed(object? sender, EventArgs e)
         {
             postClosingAction?.Invoke(vm);
-            view.Closed -= View_Closed;
+            view.OnViewClosed -= View_Closed;
         }
     }
 
     public async Task ShowDialog<T>(Func<T, Task>? preLoadingAction = null, Func<T, Task>? postLoadingAction = null, Func<T, bool, Task>? postClosingAction = null) where T : ViewModelBase
     {
-        var wnd = Application.Current.Windows.OfType<BaseView>().LastOrDefault(w => w.IsActive);
+        var wnd = Application.Current.Windows.OfType<IWindow>().LastOrDefault(w => w.IsActive);
 
         //if (wnd == null) return;
 
@@ -83,32 +84,33 @@ public class DialogService
         var type = Assembly.GetExecutingAssembly().GetTypes().FirstOrDefault(t => t.Name == name);
 
         if (type == null) return;
-        if (_serviceProvider.GetRequiredKeyedService(type, name) is not BaseView view) return;
+        if (_serviceProvider.GetRequiredKeyedService(type, name) is not IWindow view) return;
 
         if (wnd != null)
         {
-            view.Owner = wnd;
+            view.SetOwner(wnd);
         }
         else
         {
-            view.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            view.SetPosition(WindowStartupLocation.CenterScreen);
         }
-        
+
         view.SetContext(vm);
 
         var result = false;
 
-        view.Loaded += View_Loaded;
-        var res = view.ShowDialog();
+        view.OnViewLoaded += View_Loaded;
+
+        var res = view.ShowView(true);
 
         result = res == true;
 
         postClosingAction?.Invoke(vm, result);
 
-        void View_Loaded(object sender, RoutedEventArgs args)
+        void View_Loaded(object? sender, EventArgs args)
         {
             postLoadingAction?.Invoke(vm);
-            view.Loaded -= View_Loaded;
+            view.OnViewLoaded -= View_Loaded;
         }
     }
 
@@ -122,23 +124,23 @@ public class DialogService
         var type = Assembly.GetExecutingAssembly().GetTypes().FirstOrDefault(t => t.Name == name);
 
         if (type == null) return;
-        if (_serviceProvider.GetRequiredKeyedService(type, name) is not BaseView view) return;
+        if (_serviceProvider.GetRequiredKeyedService(type, name) is not IWindow view) return;
         view.SetContext(vm);
 
-        view.Loaded += View_Loaded;
-        view.Closed += View_Closed;
+        view.OnViewLoaded += View_Loaded;
+        view.OnViewClosed += View_Closed;
         //view.Show();
 
-        void View_Loaded(object sender, RoutedEventArgs args)
+        void View_Loaded(object? sender, EventArgs args)
         {
             postLoadingAction?.Invoke(vm);
-            view.Loaded -= View_Loaded;
+            view.OnViewLoaded -= View_Loaded;
         }
 
         void View_Closed(object? sender, EventArgs e)
         {
             postClosingAction?.Invoke(vm);
-            view.Closed -= View_Closed;
+            view.OnViewClosed -= View_Closed;
         }
     }
 
@@ -146,22 +148,22 @@ public class DialogService
     {
         var name = typeof(T).Name.Replace("Model", string.Empty);
 
-        var view = Application.Current.Windows.OfType<BaseView>()
-            .FirstOrDefault(w => w.DataContext.GetType().Name == typeof(T).Name);
+        var view = Application.Current.Windows.OfType<IWindow>()
+            .FirstOrDefault(w => w.GetContext<T>().GetType().Name == typeof(T).Name);
 
         if (view != null)
         {
-            if (view.IsVisible)
+            if (view.IsVisible())
             {
                 view.Hide();
             }
             else
             {
-                view.Show();
-                
-                if (view.WindowState == WindowState.Minimized)
+                view.ShowView();
+
+                if (view.GetState() == WindowState.Minimized)
                 {
-                    view.WindowState = WindowState.Normal;
+                    view.SetState(WindowState.Normal);
                 }
 
                 view.UpdateLayout();
@@ -173,18 +175,20 @@ public class DialogService
     {
         var name = typeof(T).Name.Replace("Model", string.Empty);
 
-        var view = Application.Current.Windows.OfType<BaseView>()
-            .FirstOrDefault(w => w.DataContext.GetType().Name == typeof(T).Name);
+        var view = Application.Current.Windows.OfType<IWindow>()
+            .FirstOrDefault(w => w.GetContext<T>().GetType().Name == typeof(T).Name);
 
-        if (view is { IsVisible: false })
+        if (view == null) throw new NullReferenceException();
+
+        if (view.IsVisible())
         {
-            view.Show();
+            view.ShowView();
         }
 
         if (view == null) return;
-        if (view.WindowState == WindowState.Minimized)
+        if (view.GetState() == WindowState.Minimized)
         {
-            view.WindowState = WindowState.Normal;
+            view.SetState(WindowState.Normal);
         }
 
         view.UpdateLayout();
@@ -194,15 +198,17 @@ public class DialogService
     {
         var name = typeof(T).Name.Replace("Model", string.Empty);
 
-        var view = Application.Current.Windows.OfType<BaseView>()
-            .FirstOrDefault(w => w.DataContext.GetType().Name == typeof(T).Name);
+        var view = Application.Current.Windows.OfType<IWindow>()
+            .FirstOrDefault(w => w.GetContext<T>().GetType().Name == typeof(T).Name);
 
-        if (view is { IsVisible: true })
+        if (view == null) throw new NullReferenceException();
+
+        if (view.IsVisible())
         {
             view.Hide();
         }
     }
-    
+
     public OpenFolderDialogResult OpenFolderDialog(string title = "Выберите директорию", string buttonOk = "Выбрать",
         string? initialDirectory = null)
     {
