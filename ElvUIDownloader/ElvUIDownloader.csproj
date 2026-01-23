@@ -24,10 +24,10 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<FileVersion>1.2.3</FileVersion>
-		<AssemblyVersion>1.2.3</AssemblyVersion>
-		<ProductVersion>1.2.3</ProductVersion>
-		<Version>1.2.3</Version>
+		<FileVersion>1.2.5</FileVersion>
+		<AssemblyVersion>1.2.5</AssemblyVersion>
+		<ProductVersion>1.2.5</ProductVersion>
+		<Version>1.2.5</Version>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -45,7 +45,6 @@
       <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
       <PackageReference Include="ModernWpfUI" Version="0.9.6" />
       <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
-      <PackageReference Include="W.TrayIcon.WPF" Version="1.0.8" />
       <Resource Include="Images\logo.png" />
     </ItemGroup>
 
@@ -81,6 +80,12 @@
 
     <ItemGroup>
       <ProjectReference Include="..\YandexClient\YandexDisk.API.Client.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="W.TrayIcon.WPF">
+        <HintPath>..\..\W.TrayIcon.WPF\W.TrayIcon.WPF\bin\Debug\net10.0-windows\W.TrayIcon.WPF.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>
