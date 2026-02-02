@@ -104,7 +104,15 @@ public class UpdateApplicationService
                 }
                 else
                 {
-                    _logger.LogInformation($"Версия обновления ({updateVersion}) актуальная или ниже - Текущая версия ({_applicationStore.Version}) ");
+                    if(updateVersion == _applicationStore.Version)
+                    {
+                        _logger.LogInformation($"Версия обновления ({updateVersion}) актуальная - Текущая версия ({_applicationStore.Version}) ");
+                    }
+                    else
+                    {
+                        _logger.LogInformation($"Версия обновления ({updateVersion}) ниже - Текущая версия ({_applicationStore.Version}) ");
+                    }
+
                     _applicationStore.IsNeedUpdate = false;
                 }
             }
