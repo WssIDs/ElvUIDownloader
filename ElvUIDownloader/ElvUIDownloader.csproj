@@ -9,7 +9,7 @@
         <ApplicationIcon>main.ico</ApplicationIcon>
         <PackageIcon>main.ico</PackageIcon>
         <Authors>WssIDs</Authors>
-        <Copyright>2025</Copyright>
+        <Copyright>2026</Copyright>
         <IsPackable>false</IsPackable>
 		<SatelliteResourceLanguages>true</SatelliteResourceLanguages>
         <NeutralLanguage>ru</NeutralLanguage>
@@ -24,10 +24,10 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<FileVersion>1.2.5</FileVersion>
-		<AssemblyVersion>1.2.5</AssemblyVersion>
-		<ProductVersion>1.2.5</ProductVersion>
-		<Version>1.2.5</Version>
+		<FileVersion>1.2.6</FileVersion>
+		<AssemblyVersion>1.2.6</AssemblyVersion>
+		<ProductVersion>1.2.6</ProductVersion>
+		<Version>1.2.6</Version>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -45,6 +45,7 @@
       <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
       <PackageReference Include="ModernWpfUI" Version="0.9.6" />
       <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+      <PackageReference Include="W.TrayIcon.WPF" Version="1.0.10" />
       <Resource Include="Images\logo.png" />
     </ItemGroup>
 
@@ -80,12 +81,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\YandexClient\YandexDisk.API.Client.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Reference Include="W.TrayIcon.WPF">
-        <HintPath>..\..\W.TrayIcon.WPF\W.TrayIcon.WPF\bin\Debug\net10.0-windows\W.TrayIcon.WPF.dll</HintPath>
-      </Reference>
     </ItemGroup>
 
 </Project>
