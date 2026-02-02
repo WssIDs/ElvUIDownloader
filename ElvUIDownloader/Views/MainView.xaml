@@ -122,7 +122,7 @@
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem IsEnabled="{Binding ProfileStore.CurrentProfile.IsInstalled, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue=False, TargetNullValue=False}" Header="Переустановить" Command="{Binding InstallForceCommand}" Margin="0"/>
-
+                    <Separator/>
                     <MenuItem Header="Проверить" Command="{Binding LoadedCommand}" Margin="0">
                         <MenuItem.Icon>
                             <iconPacks:PackIconModern Kind="Refresh" />
@@ -136,6 +136,15 @@
                             <iconPacks:PackIconModern Kind="Refresh" />
                         </MenuItem.Icon>
                     </MenuItem>
+                    <MenuItem
+                        ToolTip="Переустановить приложение"
+                        Header="Переустановить приложение"
+                        Command="{Binding ReInstallApplicationCommand}" Margin="0">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="Refresh" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator/>
                     <MenuItem Header="Удалить" Command="{Binding DeleteCommand}" Margin="0">
                         <MenuItem.Icon>
                             <iconPacks:PackIconModern Kind="Delete" />

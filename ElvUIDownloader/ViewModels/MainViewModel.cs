@@ -204,6 +204,30 @@ public class MainViewModel : ViewModelBase
                     await UpdateApplicationService.InstallAsync(true);
                 }
             }
+            else
+            {
+                MessageBox.Show("Обновление не требуется", "Обновление приложения", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+
+            IsBusy = false;
+        }, (r) => (!IsBusy || IsSelectedProfile) && ProfileStore.CurrentProfile != null);
+
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <exception cref="Exception"></exception>
+    public AsyncCommand ReInstallApplicationCommand =>
+        new(async (r) =>
+        {
+            IsBusy = true;
+
+            var result = MessageBox.Show($"Переустановить приложение?", "Переустановка приложения", MessageBoxButton.OKCancel, MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.OK)
+            {
+                await UpdateApplicationService.InstallAsync(true);
+            }
 
             IsBusy = false;
         }, (r) => (!IsBusy || IsSelectedProfile) && ProfileStore.CurrentProfile != null);

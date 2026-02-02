@@ -1,6 +1,5 @@
 ﻿using ElvUIDownloader.Models;
 using ElvUIDownloader.Models.Abstraction;
-using ElvUIDownloader.Models.Web;
 using System.Diagnostics;
 
 namespace ElvUIDownloader.Stores;
@@ -44,8 +43,18 @@ public class ApplicationStore : ModelBase
             var setupFilename = $"{Name}_{setupName}{ext}";
 
             RemoteSetupFilename = $"{Name}/{setupFilename}";
-            
-            var localSetupFilename = Path.Combine(Path.GetTempPath(), setupFilename);
+
+            var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Name!);
+            var setupDirectoryName = "Setups";
+
+            var setupDirectory = new DirectoryInfo(Path.Combine(directory, setupDirectoryName));
+
+            if (!setupDirectory.Exists)
+            {
+                setupDirectory.Create();
+            }
+
+            var localSetupFilename = Path.Combine(setupDirectory.FullName, setupFilename);
 
             LocalSetupFilename = new FileInfo(localSetupFilename);
         }
