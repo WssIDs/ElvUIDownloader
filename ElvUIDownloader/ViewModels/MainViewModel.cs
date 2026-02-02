@@ -230,7 +230,12 @@ public class MainViewModel : ViewModelBase
             }
 
             IsBusy = false;
-        }, (r) => (!IsBusy || IsSelectedProfile) && ProfileStore.CurrentProfile != null && _applicationStore.LocalSetupFilename.Exists);
+        }, (r) =>
+        {
+            _applicationStore.LocalSetupFilename.Refresh();
+
+            return !IsBusy || IsSelectedProfile || ProfileStore.CurrentProfile != null || _applicationStore.LocalSetupFilename.Exists;
+        });
 
     /// <summary>
     /// 

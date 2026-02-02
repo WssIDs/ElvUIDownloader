@@ -28,6 +28,8 @@ public class UpdateApplicationService
 
     public async Task CheckAsync(CancellationToken cancellationToken = default)
     {
+        _applicationStore.LocalSetupFilename.Refresh();
+
         // Wait asynchronously to enter the critical section.
         await semaphore.WaitAsync(cancellationToken);
         try
@@ -141,6 +143,7 @@ public class UpdateApplicationService
     /// <returns></returns>
     public async Task InstallAsync(bool isSilentInstall = true, CancellationToken cancellationToken = default)
     {
+        _applicationStore.LocalSetupFilename.Refresh();
         if (_applicationStore.LocalSetupFilename.Exists)
         {
             await Task.Run(() =>
