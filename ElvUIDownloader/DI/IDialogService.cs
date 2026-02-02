@@ -201,7 +201,7 @@ public class DialogService
         var view = Application.Current.Windows.OfType<IWindow>()
             .FirstOrDefault(w => w.GetContext<T>().GetType().Name == typeof(T).Name);
 
-        if (view == null) throw new NullReferenceException();
+        if (view == null) return;
 
         if (view.IsVisible())
         {
