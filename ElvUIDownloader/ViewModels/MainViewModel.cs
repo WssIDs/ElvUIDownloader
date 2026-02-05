@@ -248,8 +248,8 @@ public class MainViewModel : ViewModelBase
             {
                 IsBusy = true;
 
-                await UpdateAddonService.InstallAsync();
                 await UpdateAddonService.CheckAsync();
+                await UpdateAddonService.InstallAsync();
 
                 IsBusy = false;
             }
@@ -280,7 +280,7 @@ public class MainViewModel : ViewModelBase
                 IsBusy = true;
 
                 await DeleteCommand.ExecuteAsync();
-
+                await UpdateAddonService.CheckAsync();
                 await UpdateAddonService.InstallAsync();
                 await UpdateAddonService.CheckAsync();
 
@@ -307,7 +307,8 @@ public class MainViewModel : ViewModelBase
             {
                 IsBusy = true;
 
-                //await UpdateAddonService.InstallAsync();
+                await UpdateAddonService.CheckAsync();
+                await UpdateAddonService.InstallAsync();
                 await UpdateAddonService.CheckAsync();
 
                 IsBusy = false;

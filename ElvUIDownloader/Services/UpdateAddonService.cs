@@ -169,24 +169,24 @@ public class UpdateAddonService
         {
             Debug.WriteLine("Проверка установки аддона");
 
-            var processes = Process.GetProcesses().Where(p =>
-                string.Equals(p.ProcessName, "Wow", StringComparison.CurrentCultureIgnoreCase)).ToList();
+            //var processes = Process.GetProcesses().Where(p =>
+            //    string.Equals(p.ProcessName, "Wow", StringComparison.CurrentCultureIgnoreCase)).ToList();
 
-            if (processes.Count > 0)
-            {
-                foreach (var process in processes)
-                {
-                    if (_profileStore.CurrentProfile == null ||
-                        process.MainModule == null ||
-                        string.IsNullOrEmpty(process.MainModule.FileName) ||
-                        string.IsNullOrEmpty(_profileStore.CurrentProfile.InstallLocation)) continue;
-                    if (!process.MainModule.FileName.Contains(_profileStore.CurrentProfile.InstallLocation)) continue;
-                    var processId = process.Id;
-                    Debug.WriteLine($"{process.Id} - {process.MainModule.FileName} - запущена");
-                    await process.WaitForExitAsync(cancellationToken);
-                    Debug.WriteLine($"{processId} - exited");
-                }
-            }
+            //if (processes.Count > 0)
+            //{
+            //    foreach (var process in processes)
+            //    {
+            //        if (_profileStore.CurrentProfile == null ||
+            //            process.MainModule == null ||
+            //            string.IsNullOrEmpty(process.MainModule.FileName) ||
+            //            string.IsNullOrEmpty(_profileStore.CurrentProfile.InstallLocation)) continue;
+            //        if (!process.MainModule.FileName.Contains(_profileStore.CurrentProfile.InstallLocation)) continue;
+            //        var processId = process.Id;
+            //        Debug.WriteLine($"{process.Id} - {process.MainModule.FileName} - запущена");
+            //        await process.WaitForExitAsync(cancellationToken);
+            //        Debug.WriteLine($"{processId} - exited");
+            //    }
+            //}
 
             await InternalInstallAsync(cancellationToken);
             Debug.WriteLine("Аддон установлен");
@@ -196,24 +196,24 @@ public class UpdateAddonService
         {
             Debug.WriteLine("Требуется обновление аддона");
 
-            var processes = Process.GetProcesses().Where(p =>
-                string.Equals(p.ProcessName, "Wow", StringComparison.CurrentCultureIgnoreCase)).ToList();
+            //var processes = Process.GetProcesses().Where(p =>
+            //    string.Equals(p.ProcessName, "Wow", StringComparison.CurrentCultureIgnoreCase)).ToList();
 
-            if (processes.Count > 0)
-            {
-                foreach (var process in processes)
-                {
-                    if (_profileStore.CurrentProfile == null ||
-                        process.MainModule == null ||
-                        string.IsNullOrEmpty(process.MainModule.FileName) ||
-                        string.IsNullOrEmpty(_profileStore.CurrentProfile.InstallLocation) ||
-                        !process.MainModule.FileName.Contains(_profileStore.CurrentProfile.InstallLocation)) continue;
-                    var processId = process.Id;
-                    Debug.WriteLine($"{process.Id} - {process.MainModule.FileName} - запущена");
-                    await process.WaitForExitAsync(cancellationToken);
-                    Debug.WriteLine($"{processId} - exited");
-                }
-            }
+            //if (processes.Count > 0)
+            //{
+            //    foreach (var process in processes)
+            //    {
+            //        if (_profileStore.CurrentProfile == null ||
+            //            process.MainModule == null ||
+            //            string.IsNullOrEmpty(process.MainModule.FileName) ||
+            //            string.IsNullOrEmpty(_profileStore.CurrentProfile.InstallLocation) ||
+            //            !process.MainModule.FileName.Contains(_profileStore.CurrentProfile.InstallLocation)) continue;
+            //        var processId = process.Id;
+            //        Debug.WriteLine($"{process.Id} - {process.MainModule.FileName} - запущена");
+            //        await process.WaitForExitAsync(cancellationToken);
+            //        Debug.WriteLine($"{processId} - exited");
+            //    }
+            //}
 
             await InternalInstallAsync(cancellationToken);
             Debug.WriteLine("Аддон обновлен");

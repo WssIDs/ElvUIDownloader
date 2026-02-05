@@ -159,6 +159,7 @@ namespace ElvUIDownloader
                     services.AddBackgroundService<UpdateAddonBackgroundService>();
                     services.AddBackgroundService<UpdateApplicationBackgroundService>();
                     services.AddBackgroundService<InstallApplicationBackgroundService>();
+                    services.AddBackgroundService<InstallAddonBackgroundService>();
                 });
 
             _host = builder.Build();
