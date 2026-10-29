@@ -66,7 +66,7 @@ public class UpdateAddonService
                         var ext = "toc";
 
                         var path = Path.Combine(dir.FullName, $"{name}_Classic.{ext}");
-                        var pathMainLine = Path.Combine(dir.FullName, $"{name}_Mainline.{ext}");
+                        var pathMainLine = Path.Combine(dir.FullName, $"{name}.{ext}");
                         var pathCata = Path.Combine(dir.FullName, $"{name}_Cata.{ext}");
                         var pathVanila = Path.Combine(dir.FullName, $"{name}_Vanilla.{ext}");
 
