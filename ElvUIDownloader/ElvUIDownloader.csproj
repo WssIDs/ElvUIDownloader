@@ -41,7 +41,7 @@
 		<!-- Для записи в файл, если необходимо -->
 		<PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
 		<!-- Для консоли/отладки, если необходимо -->
-      <PackageReference Include="W.TrayIcon.WPF" Version="1.0.10" />
+      <PackageReference Include="W.TrayIcon.WPF" Version="1.0.11" />
       <Resource Include="Images\logo.png" />
     </ItemGroup>
 
