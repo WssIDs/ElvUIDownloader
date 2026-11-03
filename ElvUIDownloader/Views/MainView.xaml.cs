@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Windows.Media;
 using ElvUIDownloader.Views.Base;
 
 namespace ElvUIDownloader.Views;
@@ -8,6 +9,7 @@ namespace ElvUIDownloader.Views;
 /// </summary>
 public partial class MainView : BaseView
 {
+    
     public MainView()
     {
         InitializeComponent();

@@ -145,7 +145,7 @@ public class UpdateAddonService
                 throw new Exception("информация об аддоне не найдена на сайте");
             }
 
-            _addonStore.UpdateToolTipText = $"Обновлено {_profileStore.CurrentProfile.Date:dd.MM:yyyy}";
+            _addonStore.UpdateToolTipText = $"Обновлено {_profileStore.CurrentProfile.Date:dd.MM.yyyy}";
         }
         catch (Exception exception)
         {

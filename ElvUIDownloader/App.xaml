@@ -1,35 +1,7 @@
 ﻿<Application x:Class="ElvUIDownloader.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:ui="http://schemas.modernwpf.com/2019"
-             Startup="App_OnStartup">
+             Startup="App_OnStartup" ThemeMode="System">
     <Application.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <!--<ResourceDictionary Source="pack://application:,,,/PresentationFramework;component/FluentDark.xaml"/>-->
-
-                <ui:ThemeResources />
-                <ui:XamlControlsResources />
-
-                <!-- MahApps -->
-                <!--<ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
-                --><!-- Theme setting --><!--
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/dark.blue.xaml" />-->
- 
-                <!-- Material Design -->
-                <!--<ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Dark.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/recommended/Primary/MaterialDesignColor.blue.xaml"/>
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Secondary/MaterialDesignColor.blue.xaml" />-->
-
-                <!-- Material Design: MahApps Compatibility -->
-                <!--<ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.MahApps;component/Themes/MaterialDesignTheme.MahApps.Fonts.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.MahApps;component/Themes/MaterialDesignTheme.MahApps.Flyout.xaml" />-->
-            </ResourceDictionary.MergedDictionaries>
-
-            <!-- Переопределение базового фона -->
-            <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="#2B2B2B"/>
-        </ResourceDictionary>
     </Application.Resources>
 </Application>

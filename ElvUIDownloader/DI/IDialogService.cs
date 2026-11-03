@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Media;
 using ElvUIDownloader.Views.Base;
 using Meziantou.Framework.Win32;
 using Microsoft.Extensions.DependencyInjection;
@@ -52,7 +53,7 @@ public class DialogService
         view.SetContext(vm);
 
         view.OnViewLoaded += View_Loaded;
-        view.OnViewLoaded += View_Closed;
+        view.OnViewClosed += View_Closed;
 
         view.ShowView();
 
@@ -114,7 +115,7 @@ public class DialogService
         }
     }
 
-    public void ShowHidden<T>(Func<T, Task>? preLoadingAction = null, Func<T, Task>? postLoadingAction = null, Func<T, Task>? postClosingAction = null) where T : ViewModelBase
+    public async void ShowHidden<T>(Func<T, Task>? preLoadingAction = null, Func<T, Task>? postLoadingAction = null, Func<T, Task>? postClosingAction = null) where T : ViewModelBase
     {
         var name = typeof(T).Name.Replace("Model", string.Empty);
         var vm = _serviceProvider.GetRequiredService<T>();
@@ -127,20 +128,73 @@ public class DialogService
         if (_serviceProvider.GetRequiredKeyedService(type, name) is not IWindow view) return;
         view.SetContext(vm);
 
+        var loadedTcs = new TaskCompletionSource<bool>();
+
         view.OnViewLoaded += View_Loaded;
         view.OnViewClosed += View_Closed;
-        //view.Show();
 
+        if (view is not Window wnd) return;
+
+        // 2. Секрет: запоминаем, где окно ДОЛЖНО открыться (например, по центру)
+        var originalWindowStartupLocation = wnd.WindowStartupLocation;
+
+        // Временно отключаем центрирование, чтобы принудительно выкинуть окно за экран
+        wnd.WindowStartupLocation = WindowStartupLocation.Manual;
+        wnd.Left = -32000;
+        wnd.Top = -32000;
+
+        // 3. Вызываем Show! Окно открывается в "космосе", пользователь НЕ видит белой вспышки
+        view.ShowView();
+
+        // 4. Ждем, пока WPF полностью отрисует окно и все его меню в памяти
+        await loadedTcs.Task;
+
+        if (postLoadingAction != null)
+        {
+            await postLoadingAction.Invoke(vm);
+        }
+
+        await Task.Delay(500);
+
+        ////// 5. Окно готово! Возвращаем его на законное место
+        if (originalWindowStartupLocation == WindowStartupLocation.CenterScreen)
+        {
+            // Центрируем окно вручную на правильном мониторе
+            double screenWidth = SystemParameters.PrimaryScreenWidth;
+            double screenHeight = SystemParameters.PrimaryScreenHeight;
+            wnd.Left = (screenWidth - wnd.ActualWidth) / 2;
+            wnd.Top = (screenHeight - wnd.ActualHeight) / 2;
+        }
+        else if (originalWindowStartupLocation == WindowStartupLocation.CenterOwner && wnd.Owner != null)
+        {
+            wnd.Left = wnd.Owner.Left + (wnd.Owner.Width - wnd.ActualWidth) / 2;
+            wnd.Top = wnd.Owner.Top + (wnd.Owner.Height - wnd.ActualHeight) / 2;
+        }
+        else
+        {
+            // Если координаты были жестко заданы, возвращаем их (например, в 0, 0 или дефолт)
+            wnd.Left = 100;
+            wnd.Top = 100;
+        }
+
+        // Локальные функции
         void View_Loaded(object? sender, EventArgs args)
         {
-            postLoadingAction?.Invoke(vm);
             view.OnViewLoaded -= View_Loaded;
+            loadedTcs.SetResult(true); // Разблокируем await
+
+            if (view is not Window wnd) return;
+
+            wnd.Visibility = Visibility.Hidden;
         }
 
         void View_Closed(object? sender, EventArgs e)
         {
-            postClosingAction?.Invoke(vm);
             view.OnViewClosed -= View_Closed;
+            if (postClosingAction != null)
+            {
+                postClosingAction.Invoke(vm);
+            }
         }
     }
 
@@ -176,16 +230,16 @@ public class DialogService
         var name = typeof(T).Name.Replace("Model", string.Empty);
 
         var view = Application.Current.Windows.OfType<IWindow>()
-            .FirstOrDefault(w => w.GetContext<T>().GetType().Name == typeof(T).Name);
+               .FirstOrDefault(w => w.GetContext<ViewModelBase>() is T);
 
-        if (view == null) throw new NullReferenceException();
+ 
+        if (view == null) return;
 
-        if (view.IsVisible())
+        if (!view.IsVisible())
         {
             view.ShowView();
         }
 
-        if (view == null) return;
         if (view.GetState() == WindowState.Minimized)
         {
             view.SetState(WindowState.Normal);

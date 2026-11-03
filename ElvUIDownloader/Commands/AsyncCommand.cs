@@ -27,7 +27,7 @@ public class AsyncCommand : IAsyncCommand
     public event EventHandler? CanExecuteChanged
     {
         add => CommandManager.RequerySuggested += value;
-        remove => CommandManager.RequerySuggested += value;
+        remove => CommandManager.RequerySuggested -= value;
     }
     
     private readonly Func<object?,Task> _execute;

@@ -6,45 +6,52 @@
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
+  <component name="CMakeProjectFlavorService">
+    <option name="flavorId" value="CMakePlainProjectFlavor" />
+  </component>
+  <component name="CMakeSettings">
+    <configurations />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="d9484a9e-0ff0-48b8-b8c4-55fba861d604" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.ElvUIDownloader/.idea/projectSettingsUpdater.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.ElvUIDownloader/.idea/projectSettingsUpdater.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.ElvUIDownloader/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.ElvUIDownloader/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/App.xaml" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/App.xaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/App.xaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/App.xaml.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/Commands/AsyncCommand.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/Commands/AsyncCommand.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ElvUIDownloader/ElvUIDownloader.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/ElvUIDownloader.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/Services/UpdateAddonService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/Services/UpdateAddonService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/Utils/RegistryService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/Utils/RegistryService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/ViewModels/MainViewModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/ViewModels/MainViewModel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/ViewModels/SettingsViewModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/ViewModels/SettingsViewModel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/Views/AddProfileView.xaml" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/Views/AddProfileView.xaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/Views/MainView.xaml" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/Views/MainView.xaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/Views/NewVersionView.xaml" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/Views/NewVersionView.xaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/Views/SettingsView.xaml" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/Views/SettingsView.xaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="DpaMonitoringSettings">
+    <option name="firstShow" value="false" />
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "WssIDs"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;WssIDs&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/WssIDs/ElvUIDownloader.git",
-    "accountId": "87a8bc03-c81c-451e-b6ab-cc9aba3c7d28"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/WssIDs/ElvUIDownloader.git&quot;,
+    &quot;accountId&quot;: &quot;87a8bc03-c81c-451e-b6ab-cc9aba3c7d28&quot;
   }
-}]]></component>
+}</component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$USER_HOME$/AppData/Local/Symbols/src/dotnet/runtime/492abbeef0d8a6ea902ac8f90ed339c7b1d18bf4/src/libraries/System.Private.CoreLib/src/Microsoft/Win32/SafeHandles/SafeFileHandle.Windows.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$USER_HOME$/AppData/Local/Symbols/src/dotnet/runtime/492abbeef0d8a6ea902ac8f90ed339c7b1d18bf4/src/libraries/System.Private.CoreLib/src/System/IO/DirectoryInfo.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$USER_HOME$/AppData/Local/Symbols/src/dotnet/runtime/492abbeef0d8a6ea902ac8f90ed339c7b1d18bf4/src/libraries/System.Private.CoreLib/src/System/Runtime/ExceptionServices/ExceptionDispatchInfo.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/0a8955317ba54244a194692c4e7d7cab925a00/b6/7604da79/DialogHost.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/c76b54b1a48a437a9c2f022c8b361a3e16f20/50/e6c8dd03/CallSiteRuntimeResolver.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/c76b54b1a48a437a9c2f022c8b361a3e16f20/99/7cf8bb57/CallSiteVisitor`2.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/1e723d9ea92efd1035ca44bfd7f15b1631c3c3fe0d82d8bca7c516c4c14e57/UserControl.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/35bbebf7b6ec28fab8902b219266f31312846fb56246335b070fbfd8736afb9/MetroWindow.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/4441325aa73dc4685bd29c9bf413b9c2b2b78cf783d26f492c8c723afbb140/Selector.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/847eb618332dc7f4898f9184789686dc449210e3f714c3387772efb3c38c/PropertyPathWorker.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/8e7818d69af0b1b92bcd15bf7fdba9cb7c12e450fec5ff4f7be0d132fa883c/XamlReader.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/c7c777b76251b436cf84b7d89f493a9a0b9b5ba2845d7cc57d66eedaab291/StaticResourceExtension.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/ElvUIDownloader/App.xaml" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/ElvUIDownloader/App.xaml.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/ElvUIDownloader/DI/IDialogService.cs" root0="FORCE_HIGHLIGHTING" />
@@ -57,6 +64,7 @@
     <setting file="file://$PROJECT_DIR$/ElvUIDownloader/Views/MainView.xaml" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/ElvUIDownloader/Views/MainView.xaml.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/ElvUIDownloader/appsettings.json" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock:///Immediate Window" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="JsBowerSettings">
     <bower-package value="" />
@@ -72,29 +80,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    ".NET Project.ElvUIDownloader.executor": "Debug",
-    "Publish to folder.Publish ElvUIDownloader.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "cidr.known.project.marker": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "configurable.group.appearance",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;.NET Project.ElvUIDownloader.executor&quot;: &quot;Debug&quot;,
+    &quot;Publish to folder.Publish ElvUIDownloader.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;configurable.group.appearance&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected=".NET Project.ElvUIDownloader">
     <configuration name="Publish ElvUIDownloader" type="DotNetFolderPublish" factoryName="Publish to folder">
       <riderPublish configuration="Release" delete_existing_files="true" platform="Any CPU" target_folder="$PROJECT_DIR$/../../ElvUIDownloader_publish" target_framework="net6.0-windows" uuid_high="-5047098441005841508" uuid_low="-5609505395503765381">
@@ -171,6 +179,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+    <MESSAGE value="Update tray icon package" />
+    <option name="LAST_COMMIT_MESSAGE" value="Update tray icon package" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -1,9 +1,11 @@
 ﻿using ElvUIDownloader.Commands;
 using ElvUIDownloader.Models;
-using ModernWpf;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows;
 using System.Windows.Media;
+
+#pragma warning disable WPF0001 // ThemeMode помечен как experimental
 
 namespace ElvUIDownloader.ViewModels;
 
@@ -108,13 +110,13 @@ public class SettingsViewModel : ViewModelBase
                 switch (_theme)
                 {
                     case EApplicationTheme.Light:
-                        ThemeManager.Current.ApplicationTheme = ApplicationTheme.Light;
+                        Application.Current.ThemeMode = ThemeMode.Light;
                         break;
                     case EApplicationTheme.Dark:
-                        ThemeManager.Current.ApplicationTheme = ApplicationTheme.Dark;
+                        Application.Current.ThemeMode = ThemeMode.Dark;
                         break;
                     case EApplicationTheme.System:
-                        ThemeManager.Current.ApplicationTheme = null;
+                        Application.Current.ThemeMode = ThemeMode.System;
                         break;
                 }
             }
@@ -138,14 +140,7 @@ public class SettingsViewModel : ViewModelBase
         {
             if (Set(ref _useSystemAccentColor, value))
             {
-                if (_useSystemAccentColor)
-                {
-                    ThemeManager.Current.AccentColor = null;
-                }
-                else
-                {
-                    ThemeManager.Current.AccentColor = AccentColor?.Color;
-                }
+                UpdateAccent();
             }
         }
     }
@@ -159,17 +154,14 @@ public class SettingsViewModel : ViewModelBase
         {
             if (Set(ref _accentColor, value))
             {
-                if (!UseSystemAccentColor)
-                {
-                    if (_accentColor != null)
-                    {
-                        ThemeManager.Current.AccentColor = _accentColor.Color;
-                    }
-                }
+                UpdateAccent();
             }
         }
     }
 
+    private void UpdateAccent() =>
+        App.ApplyAccentColor(UseSystemAccentColor ? null : AccentColor?.Color);
+    
     private ObservableCollection<SolidColorBrush> _accentColors =
     [
         new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF0078D7")), // Синий

@@ -3,7 +3,6 @@ using ElvUIDownloader.Models;
 using ElvUIDownloader.Services;
 using ElvUIDownloader.Stores;
 using ElvUIDownloader.Utils;
-using ModernWpf;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -19,6 +18,12 @@ public class MainViewModel : ViewModelBase
     public UpdateAddonService UpdateAddonService { get; }
     public UpdateApplicationService UpdateApplicationService { get; }
 
+
+    public MainViewModel()
+    {
+        
+    }
+    
     /// <summary>
     /// 
     /// </summary>
@@ -26,6 +31,7 @@ public class MainViewModel : ViewModelBase
     /// <param name="registryService"></param>
     /// <param name="profileStore"></param>
     /// <param name="addonStore"></param>
+    /// <param name="applicationStore"></param>
     /// <param name="updateAddonService"></param>
     /// <param name="updateApplicationService"></param>
     public MainViewModel(AppSettings appSettings, RegistryService registryService,
@@ -613,7 +619,13 @@ public class MainViewModel : ViewModelBase
             await using var stream =
                 new FileStream(Path.Combine(dir, "appsettings.json"), FileMode.Create, FileAccess.Write,
                     FileShare.Write);
-            await JsonSerializer.SerializeAsync(stream, _appSettings);
+
+            var options = new JsonSerializerOptions
+            {
+                Converters = { new JsonStringEnumConverter() }
+            };
+            
+            await JsonSerializer.SerializeAsync(stream, _appSettings, options);
 
         });
 
@@ -715,25 +727,8 @@ public class MainViewModel : ViewModelBase
             }
             else
             {
-                // Возвращаем обратно тему и цвета
-                if (AppSettings.Theme == EApplicationTheme.System)
-                {
-                    ThemeManager.Current.ApplicationTheme = null;
-                }
-                else
-                {
-                    ThemeManager.Current.ApplicationTheme = (ApplicationTheme)AppSettings.Theme;
-                }
-
-                if (AppSettings.UseSystemAccentColor)
-                {
-                    ThemeManager.Current.AccentColor = null;
-                }
-                else
-                {
-                    var color = (Color)ColorConverter.ConvertFromString(AppSettings.AccentColor);
-                    ThemeManager.Current.AccentColor = color;
-                }
+                App.ApplyTheme(AppSettings);
+                App.ApplyAccentColor(AppSettings.UseSystemAccentColor ? null : (Color?)ColorConverter.ConvertFromString(AppSettings.AccentColor));
             }
         });
     });

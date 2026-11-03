@@ -10,7 +10,7 @@ public class RegistryService
         const string registryKey64 = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\";
 
         var installedWows = GetInstalledWows(registryKey32).ToList();
-        installedWows.AddRange(GetInstalledWows(registryKey64).ToList());
+        installedWows.AddRange([.. GetInstalledWows(registryKey64)]);
 
         return installedWows;
     }
@@ -29,18 +29,17 @@ public class RegistryService
             var displayName = subKey.GetValue("DisplayName")!.ToString();
 
             if (string.IsNullOrEmpty(displayName)) continue;
-            if (!displayName.ToLower().Contains("World of Warcraft".ToLower()) &&
-                !displayName.ToLower().Contains("WoW".ToLower())) continue;
-            var installLocation = subKey.GetValue("InstallLocation")!.ToString();
+            if (!displayName.Contains("World of Warcraft", StringComparison.CurrentCultureIgnoreCase) &&
+                !displayName.Contains("WoW", StringComparison.CurrentCultureIgnoreCase)) continue;
+            var installLocation = subKey.GetValue("InstallLocation")?.ToString();
 
-            if (!string.IsNullOrEmpty(installLocation))
+            if (string.IsNullOrEmpty(installLocation)) continue;
+            
+            var di = new DirectoryInfo(installLocation);
+
+            if (di.Exists)
             {
-                var di = new DirectoryInfo(installLocation);
-
-                if (di.Exists)
-                {
-                    hashSet.Add(di);
-                }
+                hashSet.Add(di);
             }
         }
 

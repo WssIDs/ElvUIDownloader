@@ -3,25 +3,19 @@
           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
           xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-          xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
           xmlns:viewModels="clr-namespace:ElvUIDownloader.ViewModels"
           xmlns:base="clr-namespace:ElvUIDownloader.Views.Base"
-          xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
           xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
-          xmlns:tb="http://www.hardcodet.net/taskbar"
           xmlns:ui="http://schemas.modernwpf.com/2019"
           xmlns:converters="clr-namespace:ElvUIDownloader.Utils.Converters"
-          xmlns:views="clr-namespace:ElvUIDownloader.Views"
           xmlns:commands="clr-namespace:ElvUIDownloader.Commands"
           xmlns:w="http://schemas.wssids.com/wpf/w/trayicon"
           BorderThickness="1"
           mc:Ignorable="d"
           Icon="/main.ico"
-          d:DataContext="{d:DesignInstance viewModels:MainViewModel}"
+          d:DataContext="{d:DesignInstance viewModels:MainViewModel, IsDesignTimeCreatable=False}"
           WindowStartupLocation="CenterScreen"
           TextElement.FontSize="14"
-          ui:WindowHelper.UseModernWindowStyle="True"
-               ui:WindowHelper.FixMaximizedWindow ="False"
           Closing="MainView_OnClosing"
                ResizeMode="CanMinimize"
           Title="{Binding Title, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Height="550" Width="800">
@@ -37,6 +31,7 @@
     </b:Interaction.Triggers>
     <Grid>
         <w:TrayIconControl x:Name="TrayIcon"
+            Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
             Icon="../main.ico"
             IsShow="True"
             CornerRadius="10"
@@ -45,11 +40,11 @@
             <w:TrayIconControl.TrayToolTip>
                 <StackPanel>
                     <TextBlock>
-                <Run Text="{Binding ApplicationStore.Name, UpdateSourceTrigger=PropertyChanged, StringFormat='\{0} '}" Foreground="White" FontSize="14"/>
+                <Run Text="{Binding ApplicationStore.Name, UpdateSourceTrigger=PropertyChanged, StringFormat='\{0} '}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" FontSize="14"/>
                 <Run Foreground="Green" FontWeight="Bold" Text="{Binding Path=ApplicationStore.Version, UpdateSourceTrigger=PropertyChanged}"/>
                     </TextBlock>
-                    <TextBlock Margin="0 5 0 0" Foreground="White" FontSize="12" Text="{Binding Path=ProfileStore.CurrentProfile.Name, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue='Нет данных', StringFormat='Профиль - {0}'}"/>
-                    <TextBlock Margin="0 2 0 0" Foreground="White" FontSize="12">
+                    <TextBlock Margin="0 5 0 0" Foreground="{DynamicResource TextFillColorPrimaryBrush}" FontSize="12" Text="{Binding Path=ProfileStore.CurrentProfile.Name, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue='Нет данных', StringFormat='Профиль - {0}'}"/>
+                    <TextBlock Margin="0 2 0 0" Foreground="{DynamicResource TextFillColorPrimaryBrush}" FontSize="12">
                 <Run Text="Версия ElvUI - "/>
                 <Run FontWeight="Bold" Text="{Binding Path=ProfileStore.CurrentProfile.Version, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue='Нет данных', TargetNullValue='Не установлен'}">
                     <Run.Style>
@@ -67,8 +62,8 @@
                 <Run Text="{Binding Path=ProfileStore.CurrentProfile.Date, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, StringFormat='{}{0:dd.MM.yyyy}', FallbackValue='Нет данных', TargetNullValue='Нет данных'}"/>
                 <Run Text=")"/>
                     </TextBlock>
-                    <TextBlock Margin="0 2 0 0" Foreground="White" FontSize="12" Text="{Binding ProfileStore.CurrentProfile.InstallLocation, UpdateSourceTrigger=PropertyChanged, FallbackValue='Нет данных', Mode=TwoWay}" />
-                    <TextBlock Foreground="White" Visibility="{Binding AddonStore.ElapsedTime.IsRunning, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0 10 0 0">
+                    <TextBlock Margin="0 2 0 0" Foreground="{DynamicResource TextFillColorPrimaryBrush}" FontSize="12" Text="{Binding ProfileStore.CurrentProfile.InstallLocation, UpdateSourceTrigger=PropertyChanged, FallbackValue='Нет данных', Mode=TwoWay}" />
+                    <TextBlock Foreground="{DynamicResource TextFillColorPrimaryBrush}" Visibility="{Binding AddonStore.ElapsedTime.IsRunning, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0 10 0 0">
                 <Run Text="Проверка обновлений аддона - "/>
                 <Run FontWeight="Bold" Text="{Binding AddonStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
                     <Run.Style>
@@ -85,7 +80,7 @@
                     </Run.Style>    
                 </Run>
                     </TextBlock>
-                    <TextBlock Foreground="White" Visibility="{Binding ApplicationStore.ElapsedTime.IsRunning, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0 2 0 0">
+                    <TextBlock Foreground="{DynamicResource TextFillColorPrimaryBrush}" Visibility="{Binding ApplicationStore.ElapsedTime.IsRunning, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0 2 0 0">
                 <Run Text="Проверка обновлений приложения - "/>
                 <Run FontWeight="Bold" Text="{Binding ApplicationStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
                     <Run.Style>
@@ -111,25 +106,38 @@
                             <TextBlock Text="{Binding AddonStore.InstallTime, StringFormat='{}{0:dd.MM.yyyy HH:mm}', UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, TargetNullValue='Нет данных'}"/>
                         </MenuItem.Header>
                         <MenuItem.Icon>
-                            <iconPacks:PackIconModern Kind="Timer" />
+                            <!-- Timer -->
+                            <TextBlock FontFamily="{DynamicResource SymbolThemeFontFamily}"
+                                       Text="&#xE916;"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="{Binding AddonStore.UpdateText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Command="{Binding UpdateCommand}" Margin="0"/>
 
                     <MenuItem Header="Установить" Command="{Binding InstallCommand}" Margin="0">
                         <MenuItem.Icon>
-                            <iconPacks:PackIconModern Kind="Download" />
+                            <!-- Download -->
+                            <TextBlock FontFamily="{DynamicResource SymbolThemeFontFamily}"
+                                       Text="&#xE896;"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem IsEnabled="{Binding ProfileStore.CurrentProfile.IsInstalled, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue=False, TargetNullValue=False}" Header="Переустановить" Command="{Binding InstallForceCommand}" Margin="0"/>
                     <MenuItem Header="Удалить" Command="{Binding DeleteCommand}" Margin="0">
                         <MenuItem.Icon>
-                            <iconPacks:PackIconModern Kind="Delete" />
+                            <!-- Delete -->
+                            <TextBlock FontFamily="{DynamicResource SymbolThemeFontFamily}"
+                                       Text="&#xE74D;"
+                                       Foreground="Red"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="Проверить" Command="{Binding LoadedCommand}" Margin="0">
                         <MenuItem.Icon>
-                            <iconPacks:PackIconModern Kind="Refresh" />
+                            <!-- Refresh -->
+                            <TextBlock FontFamily="{DynamicResource SymbolThemeFontFamily}"
+                                       Text="&#xE72C;"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator/>
@@ -138,7 +146,9 @@
                         Header="Проверить обновление"
                         Command="{Binding CheckUpdateApplicationCommand}" Margin="0">
                         <MenuItem.Icon>
-                            <iconPacks:PackIconModern Kind="Refresh" />
+                            <!-- Restart Update -->
+                            <TextBlock FontFamily="{DynamicResource SymbolThemeFontFamily}"
+                                       Text="&#xE72C;"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem
@@ -146,34 +156,46 @@
                         Header="Переустановить приложение"
                         Command="{Binding ReInstallApplicationCommand}" Margin="0">
                         <MenuItem.Icon>
-                            <iconPacks:PackIconModern Kind="Infinite" />
+                            <!-- Infinite -->
+                            <TextBlock FontFamily="{DynamicResource SymbolThemeFontFamily}"
+                                       Text="&#xF83E;"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator/>
                     <MenuItem Header="Редактировать профиль" Command="{Binding EditProfileCommand}" Margin="0">
                         <MenuItem.Icon>
-                            <iconPacks:PackIconModern Kind="User" />
+                            <!-- Payer Settings -->
+                            <TextBlock FontFamily="{DynamicResource SymbolThemeFontFamily}"
+                                       Text="&#xEF58;"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem IsEnabled="True" Header="Настройки" Command="{Binding SettingsCommand}" Margin="0">
                         <MenuItem.Icon>
-                            <iconPacks:Modern Kind="Settings" />
+                            <!-- Settings -->
+                            <TextBlock FontFamily="{DynamicResource SymbolThemeFontFamily}"
+                                   Text="&#xE713;"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="Скрыть/Показать окно" Command="{Binding ShowViewCommand}" Margin="0">
-                        <!--<MenuItem.Icon>
-                            <materialDesign:PackIcon Kind="Window" />
-                        </MenuItem.Icon>-->
+                        <MenuItem.Icon>
+                            <!-- Window -->
+                            <TextBlock FontFamily="{DynamicResource SymbolThemeFontFamily}"
+                                    Text="&#xE8A7;"/>
+                        </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="Что нового" Command="{Binding ShowNewVersionCommand}" Margin="0">
-                        <!--<MenuItem.Icon>
-                            <materialDesign:PackIcon Kind="QuestionMark" />
-                        </MenuItem.Icon>-->
+                        <MenuItem.Icon>
+                            <!-- Question -->
+                            <TextBlock FontFamily="{DynamicResource SymbolThemeFontFamily}"
+                                    Text="&#xE897;"/>
+                        </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="Выход" Command="{x:Static commands:MainCommands.ApplicationClose}" Margin="0">
-                        <!--<MenuItem.Icon>
-                            <materialDesign:PackIcon Kind="ExitToApp" />
-                        </MenuItem.Icon>-->
+                        <MenuItem.Icon>
+                            <!-- SignOut -->
+                            <TextBlock FontFamily="{DynamicResource SymbolThemeFontFamily}"
+                                Text="&#xF3B1;"/>
+                        </MenuItem.Icon>
                     </MenuItem>
                 </ContextMenu>
             </w:TrayIconControl.ContextMenu>
@@ -193,7 +215,7 @@
                     <RowDefinition/>
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="2" Grid.RowSpan="2">
-                    <ui:ProgressRing VerticalAlignment="Center" Width="30" Height="30" Margin="0 20 0 0" Foreground="DodgerBlue" IsActive="{Binding IsBusy, UpdateSourceTrigger=PropertyChanged}" />
+                    <!-- <ui:ProgressRing VerticalAlignment="Center" Width="30" Height="30" Margin="0 20 0 0" Foreground="DodgerBlue" IsActive="{Binding IsBusy, UpdateSourceTrigger=PropertyChanged}" /> -->
                 </Grid>
                 <Grid Grid.Row="0">
                     <Grid Margin="0 5">
@@ -204,7 +226,7 @@
                         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Grid.Row="1">
                             <Button
                                 ToolTip="Новый профиль"
-                                Style="{StaticResource AccentButtonStyle}"
+                                Style="{DynamicResource AccentButtonStyle}"
                                 Command="{Binding AddProfileCommand}"
                                 Content="Новый профиль"
                                 Margin="0 0 3 0">
@@ -267,7 +289,7 @@
                         Visibility="Visible"
                         ToolTip="Установить"
                         Content="Установить"
-                        Style="{StaticResource AccentButtonStyle}"
+                        Style="{DynamicResource AccentButtonStyle}"
                         Command="{Binding InstallCommand}"/>
                     <Button
                         HorizontalAlignment="Center" 
@@ -291,12 +313,14 @@
                     </Button>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Style="{StaticResource AccentButtonStyle}"
+                    <Button Style="{DynamicResource AccentButtonStyle}"
                     HorizontalAlignment="Right"
                     Margin="2"
                     Command="{Binding SettingsCommand}">
                         <Button.Content>
-                            <iconPacks:PackIconModern Kind="Settings"/>
+                            <!-- Settings -->
+                            <TextBlock FontFamily="{StaticResource SymbolThemeFontFamily}"
+                                       Text="&#xE713;"/>
                         </Button.Content>
                     </Button>
                 </StackPanel>
