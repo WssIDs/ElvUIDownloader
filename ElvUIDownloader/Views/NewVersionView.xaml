@@ -7,6 +7,7 @@
           xmlns:base="clr-namespace:ElvUIDownloader.Views.Base"
           xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
           xmlns:converters="clr-namespace:ElvUIDownloader.Utils.Converters"
+          xmlns:models="clr-namespace:ElvUIDownloader.Models"
           BorderThickness="1"
           mc:Ignorable="d"
           Icon="../main.ico"
@@ -15,7 +16,7 @@
           TextElement.FontSize="14"
           ResizeMode="CanMinimize"
           Title="{Binding Title, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-          Height="600" Width="550">
+          Height="600" Width="650">
     <base:BaseView.Resources>
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
     </base:BaseView.Resources>
@@ -29,12 +30,39 @@
         <Grid Grid.Row="0" Margin="3">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <TextBlock Text="Обновления" HorizontalAlignment="Center" FontSize="18" FontWeight="Bold" Margin="15"/>
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="5" Margin="5 5 5 10">
-                <TextBlock TextWrapping="Wrap" Text="{Binding Path=TextData, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
-            </ScrollViewer>
+            <TextBlock Text="Обновления" Style="{DynamicResource TitleTextBlockStyle}" HorizontalAlignment="Center" />
+            <TextBlock Grid.Row="1" Text="{Binding Data.Title, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Style="{DynamicResource SubtitleTextBlockStyle}" Foreground="{DynamicResource AccentTextFillColorTertiaryBrush}" Margin="25 20 0 10"/>
+                <ListView Grid.Row="2" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemsSource="{Binding Data.Messages, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="5 5 5 10">
+                    <ListView.ItemTemplate>             
+                        <DataTemplate DataType="{x:Type models:MessageModel}">
+                            <Border Margin="0 10 0 5" Padding="5">
+                                <Grid RowDefinitions="Auto,*">
+                                    <TextBlock Style="{DynamicResource BodyStrongTextBlockStyle}" Margin="0 0 0 5">
+                                        <Run Text="{Binding Header.Version}" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"/>
+                                        <Run Text=" "/>
+                                        <Run Text="{Binding Header.Date}"/>
+                                    </TextBlock>
+                                    <Grid Grid.Row="1">
+                                        <ItemsControl ItemsSource="{Binding Lines, UpdateSourceTrigger=PropertyChanged}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="{x:Type models:LineModel}">
+                                                    <Grid ColumnDefinitions="Auto,*">
+                                                        <TextBlock Grid.Column="0" Text="{Binding Type}" Margin="0 0 5 0" FontWeight="Bold" Foreground="{DynamicResource AccentTextFillColorTertiaryBrush}"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Text}" TextWrapping="Wrap" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Grid>
+                                </Grid>
+                            </Border>         
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <!-- <TextBlock TextWrapping="Wrap" Text="{Binding Path=TextData, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/> -->
         </Grid>
     </Grid>
     </Grid>

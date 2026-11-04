@@ -1,5 +1,4 @@
 ﻿using ElvUIDownloader.Views.Base;
-using System.Windows.Controls;
 
 namespace ElvUIDownloader.Views;
 

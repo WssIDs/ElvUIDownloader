@@ -31,6 +31,8 @@ namespace ElvUIDownloader
 
         public App()
         {
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            
             var builder = Host.CreateDefaultBuilder();
 
             builder
@@ -68,7 +70,7 @@ namespace ElvUIDownloader
                         Directory.CreateDirectory(dir);
                     }
 
-                    string logFilePath = Path.Combine(dir, "logs", "log-.log");
+                    var logFilePath = Path.Combine(dir, "logs", "log-.log");
 
                     config
                         .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Debug) // Write Debug+ logs to the console
@@ -153,8 +155,10 @@ namespace ElvUIDownloader
 
                 // Применение темы и цветов
 
-                ApplyTheme(appSettings);
-                ApplyAccentColor(appSettings.UseSystemAccentColor ? null : (Color?)ColorConverter.ConvertFromString(appSettings.AccentColor));
+                AccentThemeManager.SetTheme(appSettings.Theme, appSettings.UseSystemAccentColor ? null : (Color?)ColorConverter.ConvertFromString(appSettings.AccentColor));
+                
+                // ApplyTheme(appSettings);
+                // ApplyAccentColor(appSettings.UseSystemAccentColor ? null : (Color?)ColorConverter.ConvertFromString(appSettings.AccentColor));
 
                 var tokenSource = new CancellationTokenSource();
 

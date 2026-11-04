@@ -27,7 +27,7 @@
                 <TextBlock Margin="10 20 0 5" Text="Наименование профиля"/>
                 <TextBox Margin="10 0 0 0" Text="{Binding Profile.Name, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
                 <TextBlock Margin="10 20 0 5" Text="Путь к игре Word of Warcraft"/>
-                <CheckBox Margin="10 0 0 5" IsChecked="{Binding Path=IsManualSelectDirectory, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" >Указать дирректорию вручную</CheckBox>
+                <CheckBox Margin="10 0 0 5" IsChecked="{Binding Path=IsManualSelectDirectory, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" >Указать директорию вручную</CheckBox>
                 <ComboBox Margin="10 0 0 5" HorizontalAlignment="Stretch" IsEnabled="{Binding Path=IsManualSelectDirectory, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}" ItemsSource="{Binding Path=InstalledWows, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding Path=SelectedInstalledWow, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
                 <Grid Margin="10 5 0 10">
                     <Grid.ColumnDefinitions>
@@ -35,7 +35,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBox IsEnabled="{Binding Path=IsManualSelectDirectory, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" VerticalAlignment="Center" Text="{Binding Profile.InstallLocation, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
-                    <Button IsEnabled="{Binding Path=IsManualSelectDirectory, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="3 0 0 0" Grid.Column="1" ToolTip="Выбрать директорию" Command="{Binding Path=SelectFolderCommand}">...</Button>
+                    <Button IsEnabled="{Binding Path=IsManualSelectDirectory, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="3 0 0 0" Grid.Column="1" ToolTip="Выбрать директорию" Command="{Binding Path=SelectFolderCommand}" Padding="12 7.2">...</Button>
                 </Grid>
                 <TextBlock Margin="10 0 0 5" Text="Тип игры"/>
                 <ComboBox Margin="10 0 0 0" HorizontalAlignment="Stretch" SelectedItem="{Binding Profile.Type, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" ItemsSource="{Binding Path=Types, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
@@ -44,8 +44,8 @@
             </StackPanel>
         </ScrollViewer>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
-            <Button Style="{StaticResource AccentButtonStyle}" Margin="10" Content="{Binding Path=OkButton, UpdateSourceTrigger=PropertyChanged, FallbackValue=OK, TargetNullValue=OK}" Command="{Binding SaveProfileCommand}" />
-            <Button Margin="10" Content="Отмена" IsCancel="True" />
+            <Button Style="{StaticResource AccentButtonStyle}" Margin="0 10 0 0" Content="{Binding Path=OkButton, UpdateSourceTrigger=PropertyChanged, FallbackValue=OK, TargetNullValue=OK}" Command="{Binding SaveProfileCommand}" />
+            <Button Margin="5 10 0 0" Content="Отмена" IsCancel="True" />
         </StackPanel>
     </Grid>
 </base:BaseView>

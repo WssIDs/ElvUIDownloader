@@ -4,15 +4,22 @@ namespace ElvUIDownloader.Utils;
 
 public class RegistryService
 {
-    public async Task<List<DirectoryInfo>> GetWows()
+    public Task<List<DirectoryInfo>> GetWows()
     {
-        const string registryKey32 = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
-        const string registryKey64 = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\";
+        try
+        {
+            const string registryKey32 = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
+            const string registryKey64 = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\";
 
-        var installedWows = GetInstalledWows(registryKey32).ToList();
-        installedWows.AddRange([.. GetInstalledWows(registryKey64)]);
+            var installedWows = GetInstalledWows(registryKey32).ToList();
+            installedWows.AddRange([.. GetInstalledWows(registryKey64)]);
 
-        return installedWows;
+            return Task.FromResult(installedWows);
+        }
+        catch (Exception exception)
+        {
+            return Task.FromException<List<DirectoryInfo>>(exception);
+        }
     }
     
     private HashSet<DirectoryInfo> GetInstalledWows(string keyPath)

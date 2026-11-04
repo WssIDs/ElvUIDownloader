@@ -1,34 +1,21 @@
-﻿using ElvUIDownloader.Models;
-using ElvUIDownloader.Models.Abstraction;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using ElvUIDownloader.Models;
 
 namespace ElvUIDownloader.Stores;
 
-public class ProfileStore : ModelBase
+public partial class ProfileStore(AppSettings appSettings) : ObservableObject
 {
-    private readonly AppSettings _appSettings;
-
-    public ProfileStore(AppSettings appSettings)
-    {
-        _appSettings = appSettings;
-    }
-
-    private ProfileModel? _currentProfile;
-
     /// <summary>
     /// 
     /// </summary>
-    public ProfileModel? CurrentProfile
+    [ObservableProperty]
+    public partial ProfileModel? CurrentProfile { get; set; }
+
+    partial void OnCurrentProfileChanged(ProfileModel? value)
     {
-        get => _currentProfile;
-        set
+        if (CurrentProfile != null)
         {
-            if(Set(ref _currentProfile, value))
-            {
-                if(_currentProfile != null)
-                {
-                    _appSettings.CurrentProfile = _currentProfile.Name;
-                }
-            }
+            appSettings.CurrentProfile = CurrentProfile.Name;
         }
     }
 }

@@ -1,71 +1,60 @@
-﻿using ElvUIDownloader.Models;
-using ElvUIDownloader.Stores;
+﻿using ElvUIDownloader.Stores;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Threading;
+using ElvUIDownloader.Models.Web;
 using YandexDisk.API.Client.Contracts;
 
 namespace ElvUIDownloader.Services;
 
-public class UpdateApplicationService
+public class UpdateApplicationService(
+    ILogger<UpdateApplicationService> logger,
+    ApplicationStore applicationStore,
+    IYandexDiskApi diskApi)
 {
-    private readonly ILogger<UpdateApplicationService> _logger;
-    private readonly IYandexDiskApi _diskApi;
-    private readonly ApplicationStore _applicationStore;
-
-    public UpdateApplicationService(
-        ILogger<UpdateApplicationService> logger,
-        ApplicationStore applicationSrtore,
-        IYandexDiskApi diskApi)
-    {
-        _logger = logger;
-        _diskApi = diskApi;
-        _applicationStore = applicationSrtore;
-    }
-
-    private static readonly SemaphoreSlim semaphore = new(1, 1);
+    private static readonly SemaphoreSlim Semaphore = new(1, 1);
 
     public async Task CheckAsync(CancellationToken cancellationToken = default)
     {
-        _applicationStore.LocalSetupFilename.Refresh();
+        applicationStore.LocalSetupFilename.Refresh();
 
         // Wait asynchronously to enter the critical section.
-        await semaphore.WaitAsync(cancellationToken);
+        await Semaphore.WaitAsync(cancellationToken);
         try
         {
             if (cancellationToken.IsCancellationRequested) return;
 
             var stream =
-                await _diskApi.DownloadFileAsync(_applicationStore.RemoteFileVersionFilename, cancellationToken);
+                await diskApi.DownloadFileAsync(applicationStore.RemoteFileVersionFilename, cancellationToken);
 
             if (stream == null)
             {
-                _applicationStore.IsNeedUpdate = false;
+                applicationStore.IsNeedUpdate = false;
                 return;
             }
 
-            var data = await JsonSerializer.DeserializeAsync<AppVersionModel>(stream, cancellationToken: cancellationToken);
+            var data = await JsonSerializer.DeserializeAsync<AppVersionJsonModel>(stream, cancellationToken: cancellationToken);
 
             if (data != null)
             {
                 var updateVersion = Version.Parse(data.FileVersion);
 
                 // Setup всегда скачиваем
-                if (!_applicationStore.LocalSetupFilename.Exists)
+                if (!applicationStore.LocalSetupFilename.Exists)
                 {
-                    using var setupStream = await _diskApi.DownloadFileAsync(_applicationStore.RemoteSetupFilename, cancellationToken);
+                    await using var setupStream = await diskApi.DownloadFileAsync(applicationStore.RemoteSetupFilename, cancellationToken);
                     if (setupStream == null) return;
 
-                    await using var fs = new FileStream(_applicationStore.LocalSetupFilename.FullName, FileMode.Create, FileAccess.Write);
+                    await using var fs = new FileStream(applicationStore.LocalSetupFilename.FullName, FileMode.Create, FileAccess.Write);
                     await setupStream.CopyToAsync(fs, cancellationToken);
                 }
 
-                if (updateVersion > _applicationStore.Version)
+                if (updateVersion > applicationStore.Version)
                 {
-                    if (_applicationStore.LocalSetupFilename.Exists)
+                    if (applicationStore.LocalSetupFilename.Exists)
                     {
-                        var versionInfo = FileVersionInfo.GetVersionInfo(_applicationStore.LocalSetupFilename.FullName);
+                        var versionInfo = FileVersionInfo.GetVersionInfo(applicationStore.LocalSetupFilename.FullName);
 
                         if (versionInfo.FileVersion != null)
                         {
@@ -73,65 +62,65 @@ public class UpdateApplicationService
 
                             // Если версия установщика меньше или равна, то его нужно удалить
                             // Или версия на сервере больше скачанной версии
-                            if (localSetupVersion <= _applicationStore.Version || updateVersion > localSetupVersion)
+                            if (localSetupVersion <= applicationStore.Version || updateVersion > localSetupVersion)
                             {
-                                _applicationStore.LocalSetupFilename.Delete();
+                                applicationStore.LocalSetupFilename.Delete();
                             }
                             else
                             {
-                                _logger.LogInformation("Новая версия установщика уже скачана. Загружать новую не требуется");
+                                logger.LogInformation("Новая версия установщика уже скачана. Загружать новую не требуется");
                             }
                         }
                     }
 
-                    if (!_applicationStore.LocalSetupFilename.Exists)
+                    if (!applicationStore.LocalSetupFilename.Exists)
                     {
-                        using var setupStream = await _diskApi.DownloadFileAsync(_applicationStore.RemoteSetupFilename, cancellationToken);
+                        await using var setupStream = await diskApi.DownloadFileAsync(applicationStore.RemoteSetupFilename, cancellationToken);
                         if (setupStream == null) return;
 
-                        await using var fs = new FileStream(_applicationStore.LocalSetupFilename.FullName, FileMode.Create, FileAccess.Write);
+                        await using var fs = new FileStream(applicationStore.LocalSetupFilename.FullName, FileMode.Create, FileAccess.Write);
                         await setupStream.CopyToAsync(fs, cancellationToken);
                     }
 
-                    if (!_applicationStore.LocalSetupFilename.Exists)
+                    if (!applicationStore.LocalSetupFilename.Exists)
                     {
-                        _logger.LogInformation($"Файл установки не найден {_applicationStore.LocalSetupFilename}");
-                        _applicationStore.IsNeedUpdate = false;
+                        logger.LogInformation("Файл установки не найден {ApplicationStoreLocalSetupFilename}", applicationStore.LocalSetupFilename);
+                        applicationStore.IsNeedUpdate = false;
                         return;
                     }
 
-                    _applicationStore.IsNeedUpdate = true;
+                    applicationStore.IsNeedUpdate = true;
 
-                    _logger.LogInformation("Обновление необходимо");
+                    logger.LogInformation("Обновление необходимо");
                 }
                 else
                 {
-                    if(updateVersion == _applicationStore.Version)
+                    if(updateVersion == applicationStore.Version)
                     {
-                        _logger.LogInformation($"Версия обновления ({updateVersion}) актуальная - Текущая версия ({_applicationStore.Version}) ");
+                        logger.LogInformation("Версия обновления ({UpdateVersion}) актуальная - Текущая версия ({ApplicationStoreVersion}) ", updateVersion, applicationStore.Version);
                     }
                     else
                     {
-                        _logger.LogInformation($"Версия обновления ({updateVersion}) ниже - Текущая версия ({_applicationStore.Version}) ");
+                        logger.LogInformation("Версия обновления ({UpdateVersion}) ниже - Текущая версия ({ApplicationStoreVersion}) ", updateVersion, applicationStore.Version);
                     }
 
-                    _applicationStore.IsNeedUpdate = false;
+                    applicationStore.IsNeedUpdate = false;
                 }
             }
             else
             {
-                _applicationStore.IsNeedUpdate = false;
-                _logger.LogError("Не удалось получить информацию о версии");
+                applicationStore.IsNeedUpdate = false;
+                logger.LogError("Не удалось получить информацию о версии");
             }
         }
         catch (Exception e)
         {
-            _applicationStore.IsNeedUpdate = false;
-            _logger.LogError("{ex}", e);
+            applicationStore.IsNeedUpdate = false;
+            logger.LogError(e, "");
         }
         finally
         {
-            semaphore.Release();
+            Semaphore.Release();
         }
     }
 
@@ -143,18 +132,18 @@ public class UpdateApplicationService
     /// <returns></returns>
     public async Task InstallAsync(bool isSilentInstall = true, CancellationToken cancellationToken = default)
     {
-        _applicationStore.LocalSetupFilename.Refresh();
-        if (_applicationStore.LocalSetupFilename.Exists)
+        applicationStore.LocalSetupFilename.Refresh();
+        if (applicationStore.LocalSetupFilename.Exists)
         {
             await Task.Run(() =>
             {
-                _logger.LogInformation($"Подготовка к установке {_applicationStore.LocalSetupFilename.Exists}");
+                logger.LogInformation("Подготовка к установке {Exists}", applicationStore.LocalSetupFilename.Exists);
 
                 const string silent = "/VERYSILENT";
 
                 var processInfo = new ProcessStartInfo
                 {
-                    FileName = _applicationStore.LocalSetupFilename.FullName,
+                    FileName = applicationStore.LocalSetupFilename.FullName,
                 };
 
                 if (isSilentInstall)
@@ -167,15 +156,15 @@ public class UpdateApplicationService
                     StartInfo = processInfo
                 };
 
-                _logger.LogInformation($"Запуск установки {_applicationStore.LocalSetupFilename.Exists}");
+                logger.LogInformation("Запуск установки {Exists}", applicationStore.LocalSetupFilename.Exists);
 
                 if (process.Start())
                 {
-                    _logger.LogInformation($"Установка запущена");
+                    logger.LogInformation($"Установка запущена");
                 }
                 else
                 {
-                    _logger.LogError($"Ошибка запуска установки");
+                    logger.LogError($"Ошибка запуска установки");
                 }
 
             }, cancellationToken);

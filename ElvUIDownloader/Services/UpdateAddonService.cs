@@ -10,60 +10,47 @@ using System.Threading;
 
 namespace ElvUIDownloader.Services;
 
-public class UpdateAddonService
+public class UpdateAddonService(
+    AddonStore addonStore,
+    AppSettings appSettings,
+    ProfileStore profileStore,
+    IHttpClientFactory clientFactory)
 {
-    private readonly AppSettings _appSettings;
-    private readonly AddonStore _addonStore;
-    private readonly ProfileStore _profileStore;
-    private readonly IHttpClientFactory _clientFactory;
-
-    public UpdateAddonService(
-        AddonStore addonStore,
-        AppSettings appSettings,
-        ProfileStore profileStore,
-        IHttpClientFactory clientFactory)
-    {
-        _addonStore = addonStore;
-        _profileStore = profileStore;
-        _clientFactory = clientFactory;
-        _appSettings = appSettings;
-    }
-
-    private static readonly SemaphoreSlim semaphore = new(1, 1);
+    private static readonly SemaphoreSlim Semaphore = new(1, 1);
 
     public async Task CheckAsync(CancellationToken cancellationToken = default)
     {
         // Wait asynchronously to enter the critical section.
-        await semaphore.WaitAsync(cancellationToken);
+        await Semaphore.WaitAsync(cancellationToken);
         try
         {
-            if (_profileStore.CurrentProfile == null) return;
+            if (profileStore.CurrentProfile == null) return;
 
-            var pathApp = _profileStore.CurrentProfile.InstallLocation ?? string.Empty;
-            var pathType = _profileStore.CurrentProfile.Type == EGameType.Retail ? "_retail_" : "_classic_";
+            var pathApp = profileStore.CurrentProfile.InstallLocation ?? string.Empty;
+            var pathType = profileStore.CurrentProfile.Type == EGameType.Retail ? "_retail_" : "_classic_";
 
             const string pathAddons = "Interface\\AddOns";
 
-            _addonStore.PathToAddons = Path.Combine(pathApp, pathType, pathAddons);
+            addonStore.PathToAddons = Path.Combine(pathApp, pathType, pathAddons);
 
-            using var client = _clientFactory.CreateClient("TukuiClient");
+            using var client = clientFactory.CreateClient("TukuiClient");
 
-            _addonStore.ElvUi = await client.GetFromJsonAsync<ElvUiModel>("addon/elvui", cancellationToken: cancellationToken);
+            addonStore.ElvUi = await client.GetFromJsonAsync<ElvUiJsonModel>("addon/elvui", cancellationToken: cancellationToken);
 
-            if (_addonStore.ElvUi != null)
+            if (addonStore.ElvUi != null)
             {
-                var addonName = _addonStore.ElvUi.Directories.FirstOrDefault();
+                var addonName = addonStore.ElvUi.Directories.FirstOrDefault();
 
                 if (!string.IsNullOrEmpty(addonName))
                 {
-                    var dir = new DirectoryInfo(Path.Combine(_addonStore.PathToAddons, addonName));
+                    var dir = new DirectoryInfo(Path.Combine(addonStore.PathToAddons, addonName));
 
                     if (dir.Exists)
                     {
-                        _addonStore.Mode = EAddonMode.None;
+                        addonStore.Mode = EAddonMode.None;
 
-                        var name = "ElvUI";
-                        var ext = "toc";
+                        const string name = "ElvUI";
+                        const string ext = "toc";
 
                         var path = Path.Combine(dir.FullName, $"{name}_Classic.{ext}");
                         var pathMainLine = Path.Combine(dir.FullName, $"{name}.{ext}");
@@ -80,8 +67,8 @@ public class UpdateAddonService
 
                         var fileInfo = paths.FirstOrDefault(f => f.Exists);
 
-                        _profileStore.CurrentProfile.IsInstalled = true;
-                        _addonStore.InstallTime = dir.CreationTime;
+                        profileStore.CurrentProfile.IsInstalled = true;
+                        addonStore.InstallTime = dir.CreationTime;
 
                         if (fileInfo != null)
                         {
@@ -102,25 +89,22 @@ public class UpdateAddonService
                                 if (!string.IsNullOrEmpty(versionStr))
                                 {
                                     var version = Version.Parse(versionStr);
-                                    var versionNew = Version.Parse(_addonStore.ElvUi.Version);
-
-                                    //if(ProfileStore.CurrentProfile.Date == null)
-                                    //{
-                                    _profileStore.CurrentProfile.Date = DateTime.Parse(_addonStore.ElvUi.LastUpdate);
-                                    _profileStore.CurrentProfile.Version = version.ToString();
-                                    //}
-
+                                    var versionNew = Version.Parse(addonStore.ElvUi.Version);
+                                    
+                                    profileStore.CurrentProfile.Date = DateTime.Parse(addonStore.ElvUi.LastUpdate);
+                                    profileStore.CurrentProfile.Version = version.ToString();
+                                    
                                     if (version >= versionNew)
                                     {
-                                        _addonStore.TextVersionInfo = $"Текущая версия {versionNew}";
-                                        _addonStore.UpdateText = _profileStore.CurrentProfile.IsForceUpdate ? "Актуально(Обновить)" : "Актуально";
-                                        _addonStore.Mode = EAddonMode.Installed;
+                                        addonStore.TextVersionInfo = $"Текущая версия {versionNew}";
+                                        addonStore.UpdateText = profileStore.CurrentProfile.IsForceUpdate ? "Актуально(Обновить)" : "Актуально";
+                                        addonStore.Mode = EAddonMode.Installed;
                                     }
                                     else
                                     {
-                                        _addonStore.TextVersionInfo = $"Доступна новая версия {versionNew}";
-                                        _addonStore.UpdateText = "Обновить";
-                                        _addonStore.Mode = EAddonMode.NeedUpdate;
+                                        addonStore.TextVersionInfo = $"Доступна новая версия {versionNew}";
+                                        addonStore.UpdateText = "Обновить";
+                                        addonStore.Mode = EAddonMode.NeedUpdate;
                                     }
                                 }
                             }
@@ -128,11 +112,9 @@ public class UpdateAddonService
                     }
                     else
                     {
-                        _addonStore.TextVersionInfo = "Аддон отсутствует";
-
-                        //IsNeedUpdate = false;
-                        //IsNeedInstall = true;
-                        _addonStore.Mode = EAddonMode.NeedInstall;
+                        addonStore.TextVersionInfo = "Аддон отсутствует";
+                        
+                        addonStore.Mode = EAddonMode.NeedInstall;
 
                         Debug.WriteLine("Аддон отсутствует, нужна установка");
                     }
@@ -140,133 +122,93 @@ public class UpdateAddonService
             }
             else
             {
-                //IsNeedUpdate = false;
-                _addonStore.Mode = EAddonMode.None;
+                addonStore.Mode = EAddonMode.None;
                 throw new Exception("информация об аддоне не найдена на сайте");
             }
 
-            _addonStore.UpdateToolTipText = $"Обновлено {_profileStore.CurrentProfile.Date:dd.MM.yyyy}";
+            addonStore.UpdateToolTipText = $"Обновлено {profileStore.CurrentProfile.Date:dd.MM.yyyy}";
         }
         catch (Exception exception)
         {
-            ///IsNeedUpdate = false;
-            _addonStore.Mode = EAddonMode.None;
+            addonStore.Mode = EAddonMode.None;
             Debug.WriteLine(exception.ToString());
         }
         finally
         {
-            semaphore.Release();
+            Semaphore.Release();
         }
     }
 
     public async Task InstallAsync(CancellationToken cancellationToken = default)
     {
-        _addonStore.IsUpdateAddonTaskRunning = true;
+        addonStore.IsUpdateAddonTaskRunning = true;
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (_addonStore.Mode == EAddonMode.NeedInstall)
+        switch (addonStore.Mode)
         {
-            Debug.WriteLine("Проверка установки аддона");
+            case EAddonMode.NeedInstall:
+                Debug.WriteLine("Проверка установки аддона");
 
-            //var processes = Process.GetProcesses().Where(p =>
-            //    string.Equals(p.ProcessName, "Wow", StringComparison.CurrentCultureIgnoreCase)).ToList();
+                await InternalInstallAsync(cancellationToken);
+                Debug.WriteLine("Аддон установлен");
+                break;
+            case EAddonMode.NeedUpdate:
+                Debug.WriteLine("Требуется обновление аддона");
 
-            //if (processes.Count > 0)
-            //{
-            //    foreach (var process in processes)
-            //    {
-            //        if (_profileStore.CurrentProfile == null ||
-            //            process.MainModule == null ||
-            //            string.IsNullOrEmpty(process.MainModule.FileName) ||
-            //            string.IsNullOrEmpty(_profileStore.CurrentProfile.InstallLocation)) continue;
-            //        if (!process.MainModule.FileName.Contains(_profileStore.CurrentProfile.InstallLocation)) continue;
-            //        var processId = process.Id;
-            //        Debug.WriteLine($"{process.Id} - {process.MainModule.FileName} - запущена");
-            //        await process.WaitForExitAsync(cancellationToken);
-            //        Debug.WriteLine($"{processId} - exited");
-            //    }
-            //}
-
-            await InternalInstallAsync(cancellationToken);
-            Debug.WriteLine("Аддон установлен");
-        }
-
-        if (_addonStore.Mode == EAddonMode.NeedUpdate)
-        {
-            Debug.WriteLine("Требуется обновление аддона");
-
-            //var processes = Process.GetProcesses().Where(p =>
-            //    string.Equals(p.ProcessName, "Wow", StringComparison.CurrentCultureIgnoreCase)).ToList();
-
-            //if (processes.Count > 0)
-            //{
-            //    foreach (var process in processes)
-            //    {
-            //        if (_profileStore.CurrentProfile == null ||
-            //            process.MainModule == null ||
-            //            string.IsNullOrEmpty(process.MainModule.FileName) ||
-            //            string.IsNullOrEmpty(_profileStore.CurrentProfile.InstallLocation) ||
-            //            !process.MainModule.FileName.Contains(_profileStore.CurrentProfile.InstallLocation)) continue;
-            //        var processId = process.Id;
-            //        Debug.WriteLine($"{process.Id} - {process.MainModule.FileName} - запущена");
-            //        await process.WaitForExitAsync(cancellationToken);
-            //        Debug.WriteLine($"{processId} - exited");
-            //    }
-            //}
-
-            await InternalInstallAsync(cancellationToken);
-            Debug.WriteLine("Аддон обновлен");
+                await InternalInstallAsync(cancellationToken);
+                Debug.WriteLine("Аддон обновлен");
+                break;
         }
 
         Debug.WriteLine("Проверка обновления аддона завершена");
 
-        _addonStore.IsUpdateAddonTaskRunning = false;
+        addonStore.IsUpdateAddonTaskRunning = false;
     }
 
     private async Task InternalInstallAsync(CancellationToken cancellationToken = default)
     {
-        if (_addonStore.ElvUi != null)
+        if (addonStore.ElvUi != null)
         {
             if (cancellationToken.IsCancellationRequested) return;
 
-            await DownloadAndReplace(_addonStore.ElvUi.Url, _addonStore.PathToAddons, cancellationToken);
+            await DownloadAndReplace(addonStore.ElvUi.Url, addonStore.PathToAddons, cancellationToken);
 
-            if (_profileStore.CurrentProfile != null)
+            if (profileStore.CurrentProfile != null)
             {
-                _profileStore.CurrentProfile.Date = DateTime.Now;
-                _profileStore.CurrentProfile.Version = _addonStore.ElvUi.Version;
+                profileStore.CurrentProfile.Date = DateTime.Now;
+                profileStore.CurrentProfile.Version = addonStore.ElvUi.Version;
 
                 if (cancellationToken.IsCancellationRequested) return;
 
-                await _appSettings.SaveProfileAsync(_profileStore.CurrentProfile, cancellationToken);
+                await appSettings.SaveProfileAsync(profileStore.CurrentProfile, cancellationToken);
             }
         }
     }
 
     private async Task DownloadAndReplace(string downloadUrl, string destinationUrl, CancellationToken cancellationToken = default)
     {
-        using var downloadClient = _clientFactory.CreateClient("TukuiClient");
+        using var downloadClient = clientFactory.CreateClient("TukuiClient");
 
-        _addonStore.IsInstalling = true;
-        _addonStore.IsDownloading = true;
+        addonStore.IsInstalling = true;
+        addonStore.IsDownloading = true;
 
         var responseMessage = await downloadClient.GetAsync(downloadUrl, cancellationToken);
         var fileName = responseMessage.Content.Headers.ContentDisposition?.FileName;
 
         if (fileName != null)
         {
-            _addonStore.IsInstalling = false;
+            addonStore.IsInstalling = false;
             await using var stream = new MemoryStream();
 
-            IProgress<float> progress = new Progress<float>(p => { _addonStore.Progress = p; });
+            IProgress<float> progress = new Progress<float>(p => { addonStore.Progress = p; });
             await downloadClient.DownloadAsync(downloadUrl, stream, progress, cancellationToken: cancellationToken);
 
-            _addonStore.IsInstalling = true;
+            addonStore.IsInstalling = true;
 
             await Task.Run(async () =>
             {
-                using var arch = new ZipArchive(stream, ZipArchiveMode.Read);
+                await using var arch = new ZipArchive(stream, ZipArchiveMode.Read);
 
                 var dir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "Downloads"));
 
@@ -283,7 +225,7 @@ public class UpdateAddonService
                     dir.Create();
                 }
 
-                arch.ExtractToDirectory(dir.FullName);
+                await arch.ExtractToDirectoryAsync(dir.FullName, cancellationToken);
 
                 foreach (var dirInfoLocal in dir.GetDirectories())
                 {
@@ -300,8 +242,8 @@ public class UpdateAddonService
                 dir.Delete(true);
             }, cancellationToken);
 
-            _addonStore.IsInstalling = false;
-            _addonStore.IsDownloading = false;
+            addonStore.IsInstalling = false;
+            addonStore.IsDownloading = false;
         }
     }
 }

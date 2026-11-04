@@ -19,14 +19,14 @@ public class UpdateApplicationBackgroundService : BaseBackgroundService
     public UpdateApplicationBackgroundService(
         ILogger<UpdateApplicationBackgroundService> logger,
         ApplicationStore applicationStore,
-        AppSettings appsettings,
+        AppSettings appSettings,
         UpdateApplicationService updateApplicationService) : base(logger)
     {
         WaitingTimeAfterCompleted = TimeSpan.FromSeconds(1);
         _applicationStore = applicationStore;
         _updateApplicationService = updateApplicationService;
 
-        _appSettings = appsettings;
+        _appSettings = appSettings;
         _appSettings.UpdateAppInfo.PropertyChanged += UpdateApplicationInfo_PropertyChanged;
         _applicationStore.ElapsedTime.Time = _appSettings.UpdateAppInfo.GetTimeInterval();
     }

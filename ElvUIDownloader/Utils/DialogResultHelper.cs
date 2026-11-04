@@ -23,13 +23,11 @@ public static class DialogResultHelper
 
     private static void OnDialogResultChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is Window window)
+        if (d is not Window window) return;
+        // Устанавливаем DialogResult только если окно открыто модально
+        if (window.IsLoaded && window.WindowStartupLocation != WindowStartupLocation.Manual)
         {
-            // Устанавливаем DialogResult только если окно открыто модально
-            if (window.IsLoaded && window.WindowStartupLocation != WindowStartupLocation.Manual)
-            {
-                window.DialogResult = (bool?)e.NewValue;
-            }
+            window.DialogResult = (bool?)e.NewValue;
         }
     }
 }

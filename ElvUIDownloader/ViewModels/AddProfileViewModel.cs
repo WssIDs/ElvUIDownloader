@@ -1,5 +1,7 @@
 ﻿using System.Collections.ObjectModel;
-using ElvUIDownloader.Commands;
+using System.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ElvUIDownloader.Models;
 
 namespace ElvUIDownloader.ViewModels;
@@ -7,7 +9,7 @@ namespace ElvUIDownloader.ViewModels;
 /// <summary>
 /// 
 /// </summary>
-public class AddProfileViewModel : ViewModelBase
+public partial class AddProfileViewModel : ViewModelBase
 {
     public AddProfileViewModel()
     {
@@ -23,82 +25,52 @@ public class AddProfileViewModel : ViewModelBase
         Profile = new ProfileModel();
     }
 
-    private bool _isManualSelectDirectory;
-    private List<string> _installedWows = [];
-    private string? _selectedInstalledWow;
-    private ProfileModel _profile = null!;
-    private string _title = null!;
-    private string _okButton = null!;
-    private ObservableCollection<EGameType> _types = [];
+    [ObservableProperty]
+    public partial ProfileModel Profile { get; set; }
 
+    [ObservableProperty]
+    public partial bool IsManualSelectDirectory { get; set; }
 
-    public ProfileModel Profile
+    [ObservableProperty]
+    public partial ObservableCollection<EGameType> Types { get; set; }
+
+    [ObservableProperty]
+    public partial List<string> InstalledWows { get; set; }
+
+    [ObservableProperty]
+    public partial string? SelectedInstalledWow { get; set; }
+
+    partial void OnSelectedInstalledWowChanged(string? value)
     {
-        get => _profile;
-        set => Set(ref _profile, value);
-    }
-
-    public bool IsManualSelectDirectory
-    {
-        get => _isManualSelectDirectory;
-        set => Set(ref _isManualSelectDirectory, value);
-    }
-
-    public ObservableCollection<EGameType> Types
-    {
-        get => _types;
-        set => Set(ref _types, value);
-    }
-
-    public List<string> InstalledWows
-    {
-        get => _installedWows;
-        set => Set(ref _installedWows, value);
-    }
-
-    public string? SelectedInstalledWow
-    {
-        get => _selectedInstalledWow;
-        set
+        if (!IsManualSelectDirectory)
         {
-            if (Set(ref _selectedInstalledWow, value))
-            {
-                if (!IsManualSelectDirectory)
-                {
-                    Profile.InstallLocation = SelectedInstalledWow;
-                }
-            }
+            Profile.InstallLocation = SelectedInstalledWow;
         }
     }
 
-    public string OkButton
-    {
-        get => _okButton;
-        set => Set(ref _okButton, value);
-    }
+    [ObservableProperty]
+    public partial string OkButton { get; set; }
 
-    public string Title
-    {
-        get => _title;
-        set => Set(ref _title, value);
-    }
+    [ObservableProperty]
+    public partial string Title { get; set; }
 
-    public AsyncCommand SelectFolderCommand =>
-        new(_ =>
+    [RelayCommand] 
+    private Task SelectFolderAsync(CancellationToken cancellationToken = default)
+    {
+        var res = DialogService.OpenFolderDialog();
+
+        if (res.Result)
         {
-            var res = DialogService.OpenFolderDialog();
+            Profile.InstallLocation = res.SelectedDirectory;
+        }
 
-            if (res.Result)
-            {
-                Profile.InstallLocation = res.SelectedDirectory;
-            }
-
-            return Task.CompletedTask;
-        });
-
-    public AsyncCommand SaveProfileCommand => new(_ =>
+        return Task.CompletedTask;
+    }
+    
+    [RelayCommand]
+    private Task SaveProfileAsync(CancellationToken cancellationToken = default)
     {
         DialogResult = true;
         return Task.CompletedTask;
-    });
+    }
 }

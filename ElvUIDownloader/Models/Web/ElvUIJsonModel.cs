@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace ElvUIDownloader.Models.Web;
 
-public class ElvUiModel
+public class ElvUiJsonModel
 {
     [JsonPropertyName("id")]
     public int Id { get; set; }

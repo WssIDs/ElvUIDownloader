@@ -1,5 +1,5 @@
 ﻿using System.Text.Json.Serialization;
-using ElvUIDownloader.Models.Abstraction;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ElvUIDownloader.Models;
 
@@ -15,89 +15,54 @@ public enum EGameType
 /// <summary>
 /// 
 /// </summary>
-public class ProfileModel : ModelBase
+public partial class ProfileModel : ObservableObject
 {
-    private string? _installLocation;
-    private bool _isForceInstall;
-    private DateTime? _date;
-    private string? _version;
-    private bool _isForceUpdate;
-    private bool _isInstalled;
-
-    private string _name = string.Empty;
+    /// <summary>
+    /// 
+    /// </summary>
+    [ObservableProperty]
+    public partial string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// 
     /// </summary>
-    public string Name
-    {
-        get => _name;
-        set => Set(ref _name, value);
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public string? InstallLocation
-    {
-        get => _installLocation;
-        set => Set(ref _installLocation, value);
-    }
-
-    private EGameType _type;
+    [ObservableProperty]
+    public partial string? InstallLocation { get; set; }
 
     /// <summary>
     /// Тип игры
     /// </summary>
-    public EGameType Type
-    {
-        get => _type;
-        set => Set(ref _type, value);
-    }
+    [ObservableProperty]
+    public partial EGameType Type { get; set; }
 
     /// <summary>
     /// 
     /// </summary>
-    public bool IsForceInstall
-    {
-        get => _isForceInstall;
-        set => Set(ref _isForceInstall, value);
-    }
+    [ObservableProperty]
+    public partial bool IsForceInstall { get; set; }
 
     /// <summary>
     /// 
     /// </summary>
-    public bool IsForceUpdate
-    {
-        get => _isForceUpdate;
-        set => Set(ref _isForceUpdate, value);
-    }
+    [ObservableProperty]
+    public partial bool IsForceUpdate { get; set; }
 
     /// <summary>
     /// 
     /// </summary>
     [JsonIgnore]
-    public bool IsInstalled
-    {
-        get => _isInstalled;
-        set => Set(ref _isInstalled, value);
-    }
+    [ObservableProperty]
+    public partial bool IsInstalled { get; set; }
 
     /// <summary>
     /// 
     /// </summary>
-    public DateTime? Date
-    {
-        get => _date;
-        set => Set(ref _date, value);
-    }
+    [ObservableProperty]
+    public partial DateTime? Date { get; set; }
 
     /// <summary>
     /// 
     /// </summary>
-    public string? Version
-    {
-        get => _version;
-        set => Set(ref _version, value);
-    }
+    [ObservableProperty]
+    public partial string? Version { get; set; }
 }

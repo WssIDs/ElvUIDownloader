@@ -1,8 +1,7 @@
 ﻿using System.Windows;
-using System.Windows.Media;
 using ElvUIDownloader.Views.Base;
-using Meziantou.Framework.Win32;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
 
 namespace ElvUIDownloader.DI;
 
@@ -263,13 +262,11 @@ public class DialogService
         }
     }
 
-    public OpenFolderDialogResult OpenFolderDialog(string title = "Выберите директорию", string buttonOk = "Выбрать",
-        string? initialDirectory = null)
+    public OpenFolderDialogResult OpenFolderDialog(string title = "Выберите директорию", string? initialDirectory = null)
     {
         var dialog = new OpenFolderDialog
         {
             Title = title,
-            OkButtonLabel = buttonOk,
             InitialDirectory = initialDirectory
         };
 
@@ -277,10 +274,10 @@ public class DialogService
 
         var result = new OpenFolderDialogResult();
 
-        if (res == DialogResult.OK)
+        if (res == true)
         {
             result.Result = true;
-            result.SelectedDirectory = dialog.SelectedPath;
+            result.SelectedDirectory = dialog.FolderName;
         }
         else
         {

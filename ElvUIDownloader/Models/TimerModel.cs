@@ -1,30 +1,20 @@
-﻿using ElvUIDownloader.Models.Abstraction;
-using System.Windows.Threading;
+﻿using System.Windows.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ElvUIDownloader.Models;
 
 /// <summary>
 /// 
 /// </summary>
-public class TimerModel : ModelBase
+public partial class TimerModel : ObservableObject
 {
     private readonly DispatcherTimer _timer;
 
-    private TimeSpan _time;
-
-    public TimeSpan Time
-    {
-        get => _time;
-        set => Set(ref _time, value);
-    }
-
-    private bool _isRunning;
-
-    public bool IsRunning
-    {
-        get => _isRunning;
-        set => Set(ref _isRunning, value);
-    }
+    [ObservableProperty]
+    public partial TimeSpan Time { get; set; }
+    
+    [ObservableProperty]
+    public partial bool IsRunning { get; set; }
 
     public TimerModel(TimeSpan elapsedTime)
     {
@@ -60,19 +50,15 @@ public class TimerModel : ModelBase
 
     public void Start()
     {
-        if (!_timer.IsEnabled)
-        {
-            _timer.Start();
-            IsRunning = true;
-        }
+        if (_timer.IsEnabled) return;
+        _timer.Start();
+        IsRunning = true;
     }
 
     public void Stop()
     {
-        if (_timer.IsEnabled)
-        {
-            _timer.Stop();
-            IsRunning = false;
-        }
+        if (!_timer.IsEnabled) return;
+        _timer.Stop();
+        IsRunning = false;
     }
 }

@@ -3,33 +3,25 @@ using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
-using System.Windows.Media;
-using ElvUIDownloader.Models.Abstraction;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ElvUIDownloader.Utils;
-using ElvUIDownloader.ViewModels;
 
 namespace ElvUIDownloader.Models;
 
 /// <summary>
 /// 
 /// </summary>
-public class AppSettings : ModelBase
+public partial class AppSettings(RegistryService registryService) : ObservableObject
 {
-    private readonly RegistryService _registryService;
-    
-    public AppSettings(RegistryService registryService)
-    {
-        _registryService = registryService;
-        //UpdateAppInfo = new UpdateInfoModel
-        //{
-        //    Interval = 180
-        //};
-        //UpdateAddonInfo = new UpdateInfoModel
-        //{
-        //    Interval = 45
-        //};
-    }
-    
+    //UpdateAppInfo = new UpdateInfoModel
+    //{
+    //    Interval = 180
+    //};
+    //UpdateAddonInfo = new UpdateInfoModel
+    //{
+    //    Interval = 45
+    //};
+
     public bool StartMinimize { get; set; }
 
     public EApplicationTheme Theme { get; set; } = EApplicationTheme.System;
@@ -42,7 +34,7 @@ public class AppSettings : ModelBase
     /// <summary>
     /// 
     /// </summary>
-    public string? AccentColor { get; set; } = null;
+    public string? AccentColor { get; set; }
 
     /// <summary>
     /// 
@@ -52,19 +44,15 @@ public class AppSettings : ModelBase
     /// <summary>
     /// 
     /// </summary>
-    public UpdateInfoModel UpdateAppInfo { get; set; } = new();
+    [ObservableProperty]
+    public partial UpdateInfoModel UpdateAppInfo { get; set; } = new();
 
-
-    private UpdateInfoModel _updateAddonInfo = new();
 
     /// <summary>
     /// 
     /// </summary>
-    public UpdateInfoModel UpdateAddonInfo
-    {
-        get => _updateAddonInfo;
-        set => Set(ref _updateAddonInfo, value);
-    }
+    [ObservableProperty]
+    public partial UpdateInfoModel UpdateAddonInfo { get; set; } = new();
 
     /// <summary>
     /// 
@@ -105,28 +93,25 @@ public class AppSettings : ModelBase
 
         if (Profiles.Count == 0)
         {
-            var wows = await _registryService.GetWows();
+            var wows = await registryService.GetWows();
             
             // create Default Profile;
 
             var wow = wows.FirstOrDefault();
 
-            if (wow != null)
+            if (wow is { Exists: true })
             {
-                if (wow.Exists)
+                var newProfile = new ProfileModel
                 {
-                    var newProfile = new ProfileModel
-                    {
-                        Name = CurrentProfile,
-                        Type = EGameType.Retail,
-                        InstallLocation = wow.FullName,
-                        IsForceInstall = true,
-                        IsForceUpdate = true
-                    };
+                    Name = CurrentProfile,
+                    Type = EGameType.Retail,
+                    InstallLocation = wow.FullName,
+                    IsForceInstall = true,
+                    IsForceUpdate = true
+                };
                     
-                    Profiles.Add(newProfile);
-                    await SaveProfileAsync(newProfile);
-                }
+                Profiles.Add(newProfile);
+                await SaveProfileAsync(newProfile);
             }
         }
         
@@ -173,7 +158,7 @@ public class AppSettings : ModelBase
     }
 }
 
-public class UpdateInfoModel : ViewModelBase
+public partial class UpdateInfoModel : ViewModelBase
 {
     public UpdateInfoModel()
     {
@@ -181,27 +166,17 @@ public class UpdateInfoModel : ViewModelBase
         Interval = 60;
     }
 
-    private ETypeInterval _type;
+    /// <summary>
+    /// 
+    /// </summary>
+    [ObservableProperty]
+    public partial ETypeInterval Type { get; set; }
 
     /// <summary>
     /// 
     /// </summary>
-    public ETypeInterval Type
-    {
-        get => _type;
-        set => Set(ref _type, value);
-    }
-    
-    private int _interval;
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public int Interval
-    {
-        get => _interval;
-        set => Set(ref _interval, value);
-    }
+    [ObservableProperty]
+    public partial int Interval { get; set; }
 
     public TimeSpan GetTimeInterval()
     {

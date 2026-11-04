@@ -1,204 +1,108 @@
-﻿using ElvUIDownloader.Commands;
-using ElvUIDownloader.Models;
+﻿using ElvUIDownloader.Models;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Windows;
+using System.Threading;
 using System.Windows.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using ElvUIDownloader.Utils;
 
 #pragma warning disable WPF0001 // ThemeMode помечен как experimental
 
 namespace ElvUIDownloader.ViewModels;
 
-public enum EApplicationTheme
-{
-    [Description("Светлая")]
-    Light,
-
-    [Description("Темная")]
-    Dark,
-
-    [Description("Системная")]
-    System
-}
-
 /// <summary>
 /// 
 /// </summary>
-public class SettingsViewModel : ViewModelBase
+public partial class SettingsViewModel : ViewModelBase
 {
     public SettingsViewModel()
     {
         Title = "Настройки приложения";
         OkButton = "Сохранить";
 
-        Types = new ObservableCollection<ETypeInterval>(Enum.GetValues<ETypeInterval>());
-
-        Themes = new ObservableCollection<EApplicationTheme>(Enum.GetValues<EApplicationTheme>());
-
-        //if (ThemeManager.Current.ApplicationTheme.HasValue)
-        //{
-        //    Theme = (EApplicationTheme)ThemeManager.Current.ApplicationTheme.Value;
-        //}
-        //else
-        //{
-        //    Theme = EApplicationTheme.System;
-        //}
-
-        //if (ThemeManager.Current.AccentColor.HasValue)
-        //{
-        //    UseSystemAccentColor = false;
-        //    AccentColor = new SolidColorBrush(ThemeManager.Current.AccentColor.Value);
-        //}
-        //else
-        //{
-        //    UseSystemAccentColor = true;
-        //    AccentColor = null;
-        //}
-
-            //var t = ThemeManager.Current.AccentColor;
+        Types = [.. Enum.GetValues<ETypeInterval>()];
+        Themes = [.. Enum.GetValues<EApplicationTheme>()];
     }
-
-    private bool _startMinimized;
-
-    public bool StartMinimized
-    {
-        get => _startMinimized;
-        set => Set(ref _startMinimized, value);
-    }
-
-    private string _currentProfile = string.Empty;
-
-    public string CurrentProfile
-    {
-        get => _currentProfile;
-        set => Set(ref _currentProfile, value);
-    }
-
-    private UpdateInfoModel _updateAddonSettings = new();
-
-    public UpdateInfoModel UpdateAddonSettings
-    {
-        get => _updateAddonSettings;
-        set => Set(ref _updateAddonSettings, value);
-    }
-
-    private UpdateInfoModel _updateApplicationSettings = new();
-
-    public UpdateInfoModel UpdateApplicationSettings
-    {
-        get => _updateApplicationSettings;
-        set => Set(ref _updateApplicationSettings, value);
-    }
-
-    private ObservableCollection<ETypeInterval> _types = [];
-
-    public ObservableCollection<ETypeInterval> Types
-    {
-        get => _types;
-        set => Set(ref _types, value);
-    }
-
-    private EApplicationTheme _theme;
-
-    public EApplicationTheme Theme
-    {
-        get => _theme;
-        set
-        {
-            if (Set(ref _theme, value))
-            {
-                switch (_theme)
-                {
-                    case EApplicationTheme.Light:
-                        Application.Current.ThemeMode = ThemeMode.Light;
-                        break;
-                    case EApplicationTheme.Dark:
-                        Application.Current.ThemeMode = ThemeMode.Dark;
-                        break;
-                    case EApplicationTheme.System:
-                        Application.Current.ThemeMode = ThemeMode.System;
-                        break;
-                }
-            }
-        }
-    }
-
-    private ObservableCollection<EApplicationTheme> _themes = [];
-
-    public ObservableCollection<EApplicationTheme> Themes
-    {
-        get => _themes;
-        set => Set(ref _themes, value);
-    }
-
-    private bool _useSystemAccentColor = true;
-
-    public bool UseSystemAccentColor
-    {
-        get => _useSystemAccentColor;
-        set
-        {
-            if (Set(ref _useSystemAccentColor, value))
-            {
-                UpdateAccent();
-            }
-        }
-    }
-
-    private SolidColorBrush? _accentColor;
-
-    public SolidColorBrush? AccentColor
-    {
-        get => _accentColor;
-        set
-        {
-            if (Set(ref _accentColor, value))
-            {
-                UpdateAccent();
-            }
-        }
-    }
-
-    private void UpdateAccent() =>
-        App.ApplyAccentColor(UseSystemAccentColor ? null : AccentColor?.Color);
     
-    private ObservableCollection<SolidColorBrush> _accentColors =
+    [ObservableProperty]
+    public partial bool StartMinimized { get; set; }
+    
+    [ObservableProperty]
+    public partial string CurrentProfile { get; set; }
+    
+    [ObservableProperty]
+    public partial UpdateInfoModel UpdateAddonSettings { get; set; } = new();
+    
+    [ObservableProperty]
+    public partial UpdateInfoModel UpdateApplicationSettings { get; set; } = new();
+    
+    [ObservableProperty]
+    public partial ObservableCollection<ETypeInterval> Types { get; set; }
+    
+    [ObservableProperty]
+    public partial EApplicationTheme Theme { get; set; }
+
+    partial void OnThemeChanged(EApplicationTheme value)
+    {
+        AccentThemeManager.SetTheme(Theme, UseSystemAccentColor ? null : AccentColor?.Color);
+    }
+    
+    [ObservableProperty]
+    public partial ObservableCollection<EApplicationTheme> Themes { get; set; }
+    
+    [ObservableProperty]
+    public partial bool UseSystemAccentColor { get; set; }
+
+    partial void OnUseSystemAccentColorChanged(bool value)
+    {
+        if (!UseSystemAccentColor)
+        {
+            AccentThemeManager.SetTheme(Theme, AccentColor?.Color);
+        }
+        else
+        {
+            AccentThemeManager.SetTheme(Theme);
+        }
+    }
+    
+    [ObservableProperty]
+    public partial SolidColorBrush? AccentColor { get; set; }
+
+    partial void OnAccentColorChanged(SolidColorBrush? value)
+    {
+        if (!UseSystemAccentColor)
+        {
+            AccentThemeManager.SetTheme(Theme, AccentColor?.Color);
+        }
+        else
+        {
+            AccentThemeManager.SetTheme(Theme);
+        }
+    }
+
+    [ObservableProperty]
+    public partial ObservableCollection<SolidColorBrush> AccentColors { get; set; } =
     [
-        new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF0078D7")), // Синий
-        new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF107C10")), // Зеленый
-        new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFD13438")), // Красный
-        new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFF8C00")), // Оранжевый
-        new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF5C2D91")), // Фиолетовый
-        new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF038387")), // Бирюзовый
-        new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFE3008C")), // Розовый
-        new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF7A7574")), // Серый
+        new ((Color)ColorConverter.ConvertFromString("#FF0078D7")), // Синий
+        new ((Color)ColorConverter.ConvertFromString("#FF107C10")), // Зеленый
+        new ((Color)ColorConverter.ConvertFromString("#FFD13438")), // Красный
+        new ((Color)ColorConverter.ConvertFromString("#FFFF8C00")), // Оранжевый
+        new ((Color)ColorConverter.ConvertFromString("#FF5C2D91")), // Фиолетовый
+        new ((Color)ColorConverter.ConvertFromString("#FF038387")), // Бирюзовый
+        new ((Color)ColorConverter.ConvertFromString("#FFE3008C")), // Розовый
+        new ((Color)ColorConverter.ConvertFromString("#FF7A7574")), // Серый
     ];
+    
+    [ObservableProperty]
+    public partial string OkButton { get; set; }
 
-    public ObservableCollection<SolidColorBrush> AccentColors
-    {
-        get => _accentColors;
-        set => Set(ref _accentColors, value);
-    }
+    [ObservableProperty]
+    public partial string Title { get; set; }
 
-    private string _okButton = string.Empty;
-
-    public string OkButton
-    {
-        get => _okButton;
-        set => Set(ref _okButton, value);
-    }
-
-    private string _title = string.Empty;
-
-    public string Title
-    {
-        get => _title;
-        set => Set(ref _title, value);
-    }
-
-    public AsyncCommand SaveProfileCommand => new(_ =>
+    [RelayCommand]
+    private Task SaveProfileAsync(CancellationToken cancellationToken = default)
     {
         DialogResult = true;
         return Task.CompletedTask;
-    });
+    }
 }

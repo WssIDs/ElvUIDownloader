@@ -1,5 +1,5 @@
-﻿using ElvUIDownloader.Models;
-using ElvUIDownloader.Models.Abstraction;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using ElvUIDownloader.Models;
 using ElvUIDownloader.Models.Web;
 
 namespace ElvUIDownloader.Stores;
@@ -15,101 +15,52 @@ public enum EAddonMode
 /// <summary>
 /// 
 /// </summary>
-public class AddonStore : ModelBase
+public partial class AddonStore : ObservableObject
 {
     /// <summary>
     /// 
     /// </summary>
-    public TimerModel ElapsedTime { get; set; } = new(TimeSpan.FromSeconds(30));
+    [ObservableProperty]
+    public partial TimerModel ElapsedTime { get; set; } = new(TimeSpan.FromSeconds(30));
 
-    private EAddonMode _mode = EAddonMode.None;
+    [ObservableProperty]
+    public partial EAddonMode Mode { get; set; } = EAddonMode.None;
 
-    public EAddonMode Mode
-    {
-        get => _mode;
-        set => Set(ref _mode, value);
-    }
-
-    public DateTime _installTime;
-
-    public DateTime InstallTime
-    {
-        get => _installTime;
-        set => Set(ref _installTime, value);
-    }
-
-    private ElvUiModel? _elvUi;
+    [ObservableProperty]
+    public partial DateTime InstallTime { get; set; }
 
     /// <summary>
     /// 
     /// </summary>
-    public ElvUiModel? ElvUi
-    {
-        get => _elvUi;
-        set => Set(ref _elvUi, value);
-    }
-
-    private string _textVersionInfo = string.Empty;
+    [ObservableProperty]
+    public partial ElvUiJsonModel? ElvUi { get; set; }
 
     /// <summary>
     /// 
     /// </summary>
-    public string TextVersionInfo
-    {
-        get => _textVersionInfo;
-        set => Set(ref _textVersionInfo, value);
-    }
+    [ObservableProperty]
+    public partial string TextVersionInfo { get; set; } = string.Empty;
 
     /// <summary>
     /// 
     /// </summary>
     public string PathToAddons { get; set; } = string.Empty;
 
-    private float _progress;
+    [ObservableProperty]
+    public partial float Progress { get; set; }
 
-    public float Progress
-    {
-        get => _progress;
-        set => Set(ref _progress, value);
-    }
+    [ObservableProperty]
+    public partial bool IsDownloading { get; set; }
 
-    private bool _isDownloading;
+    [ObservableProperty]
+    public partial bool IsInstalling { get; set; }
 
-    public bool IsDownloading
-    {
-        get => _isDownloading;
-        set => Set(ref _isDownloading, value);
-    }
+    [ObservableProperty]
+    public partial bool IsUpdateAddonTaskRunning { get; set; }
 
-    private bool _isInstalling;
+    [ObservableProperty]
+    public partial string UpdateText { get; set; }
 
-    public bool IsInstalling
-    {
-        get => _isInstalling;
-        set => Set(ref _isInstalling, value);
-    }
-
-    private bool _isUpdateAddonTaskRunning;
-
-    public bool IsUpdateAddonTaskRunning
-    {
-        get => _isUpdateAddonTaskRunning;
-        set => Set(ref _isUpdateAddonTaskRunning, value);
-    }
-
-    private string _updateText = string.Empty;
-
-    public string UpdateText
-    {
-        get => _updateText;
-        set => Set(ref _updateText, value);
-    }
-
-    private string _updateToolTipText = string.Empty;
-
-    public string UpdateToolTipText
-    {
-        get => _updateToolTipText;
-        set => Set(ref _updateToolTipText, value);
-    }
+    [ObservableProperty]
+    public partial string UpdateToolTipText { get; set; }
 }

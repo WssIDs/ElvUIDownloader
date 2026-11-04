@@ -16,7 +16,6 @@
              d:DataContext="{d:DesignInstance viewModels:SettingsViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="700" d:DesignWidth="500">
     <base:BaseView.Resources>
-        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
         <converters:EnumDescriptionConverter x:Key="EnumDescriptionConverter"/>
     </base:BaseView.Resources>
     <Grid Margin="15">

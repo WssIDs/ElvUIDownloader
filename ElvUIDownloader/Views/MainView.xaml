@@ -6,9 +6,7 @@
           xmlns:viewModels="clr-namespace:ElvUIDownloader.ViewModels"
           xmlns:base="clr-namespace:ElvUIDownloader.Views.Base"
           xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
-          xmlns:ui="http://schemas.modernwpf.com/2019"
           xmlns:converters="clr-namespace:ElvUIDownloader.Utils.Converters"
-          xmlns:commands="clr-namespace:ElvUIDownloader.Commands"
           xmlns:w="http://schemas.wssids.com/wpf/w/trayicon"
           BorderThickness="1"
           mc:Ignorable="d"
@@ -21,7 +19,6 @@
           Title="{Binding Title, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Height="550" Width="800">
     <base:BaseView.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
     </base:BaseView.Resources>
     <b:Interaction.Triggers>
@@ -41,7 +38,7 @@
                 <StackPanel>
                     <TextBlock>
                 <Run Text="{Binding ApplicationStore.Name, UpdateSourceTrigger=PropertyChanged, StringFormat='\{0} '}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" FontSize="14"/>
-                <Run Foreground="Green" FontWeight="Bold" Text="{Binding Path=ApplicationStore.Version, UpdateSourceTrigger=PropertyChanged}"/>
+                <Run Foreground="{DynamicResource {x:Static SystemColors.AccentColorBrushKey}}" FontWeight="Bold" Text="{Binding Path=ApplicationStore.Version, UpdateSourceTrigger=PropertyChanged}"/>
                     </TextBlock>
                     <TextBlock Margin="0 5 0 0" Foreground="{DynamicResource TextFillColorPrimaryBrush}" FontSize="12" Text="{Binding Path=ProfileStore.CurrentProfile.Name, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue='Нет данных', StringFormat='Профиль - {0}'}"/>
                     <TextBlock Margin="0 2 0 0" Foreground="{DynamicResource TextFillColorPrimaryBrush}" FontSize="12">
@@ -49,9 +46,9 @@
                 <Run FontWeight="Bold" Text="{Binding Path=ProfileStore.CurrentProfile.Version, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue='Нет данных', TargetNullValue='Не установлен'}">
                     <Run.Style>
                          <Style TargetType="Run">
-                             <Setter Property="Foreground" Value="Green"/>
+                             <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.AccentColorBrushKey}}"/>
                              <Style.Triggers>
-                                 <DataTrigger Binding="{Binding ProfileStore.CurrentProfile.Version, UpdateSourceTrigger=PropertyChanged}" Value="{x:Null}">
+                                 <DataTrigger Binding="{Binding ProfileStore.CurrentProfile.Version, UpdateSourceTrigger=PropertyChanged, FallbackValue='1.0.0'}" Value="{x:Null}">
                                      <Setter Property="Foreground" Value="#fc3232"/>
                                  </DataTrigger>
                              </Style.Triggers>
@@ -73,7 +70,7 @@
                                     <Setter Property="Foreground" Value="#fc3232"/>
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding AddonStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Converter={converters:TimeSpanToBooleanConverter}}" Value="False">
-                                  <Setter Property="Foreground" Value="Green"/>
+                                  <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.AccentColorBrushKey}}"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -90,7 +87,7 @@
                                     <Setter Property="Foreground" Value="#fc3232"/>
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding ApplicationStore.ElapsedTime.Time, UpdateSourceTrigger=PropertyChanged, Converter={converters:TimeSpanToBooleanConverter}}" Value="False">
-                                  <Setter Property="Foreground" Value="Green"/>
+                                  <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.AccentColorBrushKey}}"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -190,7 +187,7 @@
                                     Text="&#xE897;"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Выход" Command="{x:Static commands:MainCommands.ApplicationClose}" Margin="0">
+                    <MenuItem Header="Выход" Command="{Binding ExitCommand}" Margin="0">
                         <MenuItem.Icon>
                             <!-- SignOut -->
                             <TextBlock FontFamily="{DynamicResource SymbolThemeFontFamily}"
@@ -229,10 +226,10 @@
                                 Style="{DynamicResource AccentButtonStyle}"
                                 Command="{Binding AddProfileCommand}"
                                 Content="Новый профиль"
-                                Margin="0 0 3 0">
+                                Margin="0 0 0 0">
                             </Button>
                             <Button ToolTip="Редактировать профиль"
-                                    Margin="3 0 3 0"  
+                                    Margin="5 0 5 0"  
                                     Content="Редактировать профиль"
                                     Command="{Binding EditProfileCommand}">
                             </Button>
@@ -256,7 +253,7 @@
                 </Grid>
                 <Grid Grid.Row="1" Margin="0 10 0 0">
                     <Image Source="../Images/logo.png" HorizontalAlignment="Center"
-                       VerticalAlignment="Center" Width="150" 
+                       VerticalAlignment="Center" Stretch="Uniform" Width="120"
                 SnapsToDevicePixels="True" Margin="5"></Image>
                 </Grid>
 
@@ -273,9 +270,7 @@
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
                     <Grid ToolTip="{Binding Path=AddonStore.UpdateToolTipText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
                         <Button
-                             VerticalContentAlignment="Center"
-                            Margin="2"
-                            Padding="10 4.5"
+                             VerticalContentAlignment="Center" Margin="0 0 0 0"
                         HorizontalAlignment="Center"
                         ToolTip="{Binding Path=AddonStore.UpdateToolTipText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                         Content="{Binding Path=AddonStore.UpdateText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, TargetNullValue='Обновить', FallbackValue='Обновить'}"
@@ -284,8 +279,7 @@
                     </Grid>
                     <Button
                         HorizontalAlignment="Center"
-                        Margin="2"
-                        Padding="10 4.5"
+                        Margin="5 0 5 0"
                         Visibility="Visible"
                         ToolTip="Установить"
                         Content="Установить"
@@ -293,20 +287,20 @@
                         Command="{Binding InstallCommand}"/>
                     <Button
                         HorizontalAlignment="Center" 
-                        Margin="2"
+                        Margin="0 0 5 0"
                             Content="Переустановить"
                         ToolTip="Переустановить"
                         Command="{Binding InstallForceCommand}"/>
                     <Button 
                         HorizontalAlignment="Right"
-                        Margin="2"
+                        Margin="0 0 5 0"
                         ToolTip="Проверить наличие новой версии аддона"
                         Content="Проверить"
                         Command="{Binding LoadedCommand}">
                     </Button>
                     <Button 
                     HorizontalAlignment="Right"
-                    Margin="2"
+                    Margin="0 0 5 0"
                     ToolTip="Удалить аддон"
                     Content="Удалить"
                     Command="{Binding DeleteCommand}">
@@ -315,11 +309,13 @@
                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Style="{DynamicResource AccentButtonStyle}"
                     HorizontalAlignment="Right"
-                    Margin="2"
+                    Margin="5 0 0 0"
+                    ToolTip="Настройки"
+                    Padding="10 7.5"
                     Command="{Binding SettingsCommand}">
                         <Button.Content>
                             <!-- Settings -->
-                            <TextBlock FontFamily="{StaticResource SymbolThemeFontFamily}"
+                            <TextBlock FontFamily="{DynamicResource SymbolThemeFontFamily}"
                                        Text="&#xE713;"/>
                         </Button.Content>
                     </Button>

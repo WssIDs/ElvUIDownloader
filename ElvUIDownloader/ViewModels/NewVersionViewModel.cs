@@ -1,14 +1,13 @@
-﻿using ElvUIDownloader.Commands;
+﻿using System.Text.RegularExpressions;
+using System.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using ElvUIDownloader.Models;
 
 namespace ElvUIDownloader.ViewModels;
 
-public class NewVersionViewModel : ViewModelBase
+public partial  class NewVersionViewModel : ViewModelBase
 {
-    private string _title = string.Empty;
-    private bool _isBusy;
-
-    private string _textData = string.Empty;
-
     /// <summary>
     /// 
     /// </summary>
@@ -17,41 +16,111 @@ public class NewVersionViewModel : ViewModelBase
         Title = "Что нового";
     }
 
-    public string Title
-    {
-        get => _title;
-        set => Set(ref _title, value);
-    }
+    [ObservableProperty]
+    public partial string Title { get; set; }
 
-    public bool IsBusy
-    {
-        get => _isBusy;
-        set => Set(ref _isBusy, value);
-    }
+    [ObservableProperty]
+    public partial bool IsBusy { get; set; }
 
-    public string TextData
-    {
-        get => _textData;
-        set => Set(ref _textData, value);
-    }
+    [ObservableProperty]
+    public partial string TextData { get; set; }
 
+    [ObservableProperty]
+    public partial TextModel Data { get; set; } = new()
+    {
+        Title = string.Empty
+    };
+    
     /// <summary>
     /// 
     /// </summary>
     /// <exception cref="Exception"></exception>
-    public AsyncCommand LoadedCommand =>
-        new(async _ =>
+    [RelayCommand(CanExecute = nameof(CanLoaded))]
+    private async Task LoadedAsync(CancellationToken cancellationToken = default)
+    {
+        IsBusy = true;
+
+        const string filename = "readme.md";
+        var fi = new FileInfo(filename);
+
+
+        if (fi.Exists)
         {
-            IsBusy = true;
-
-            const string filename = "readme.md";
-            var fi = new FileInfo(filename);
-
-            if (fi.Exists)
-            {
-                TextData = await File.ReadAllTextAsync(filename);
-            }
+            var lines = File.ReadLinesAsync(filename, cancellationToken);
             
-            IsBusy = false;
-        }, (r) => !IsBusy);
+            var isFirstLine = true;
+            var isHeader = false;
+
+            MessageModel? currentMessage = null;
+            
+            await foreach (var line in lines)
+            {
+                if (isFirstLine)
+                {
+                    Data.Title = line;
+                    
+                    isFirstLine = false;
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(line))
+                {
+                    if (currentMessage != null)
+                    {
+                        Data.Messages.Add(currentMessage);
+                    }
+
+                    currentMessage = null;
+                    
+                    isHeader = true;
+                    continue;
+                }
+
+                if (isHeader)
+                {
+                    var splitHeaders = line.Split(' ');
+
+                    if (splitHeaders.Length == 3)
+                    {
+                        currentMessage = new MessageModel
+                        {
+                            Header = new HeaderModel
+                            {
+                                Version = $"{splitHeaders[0]} {splitHeaders[1]}",
+                                Date = splitHeaders[2]
+                            }
+                        };
+                    }
+                    
+                    isHeader = false;
+                    continue;
+                }
+
+                // Регулярное выражение:
+                // ^\[(.*?)\] — находит текст внутри квадратных скобок в начале строки
+                // \s* — игнорирует пробелы после скобок
+                // (.*)$ — забирает весь оставшийся текст до конца строки
+                var match = MyRegex().Match(line);
+
+                if (match.Success)
+                {
+                    currentMessage?.Lines.Add(new LineModel
+                    {
+                        Type = $"[{match.Groups[1].Value}]",
+                        Text = match.Groups[2].Value
+                    });
+                }
+            }
+        }
+
+        IsBusy = false;
+    }
+
+    private bool CanLoaded()
+    {
+        return !IsBusy;
+    }
+
+    [GeneratedRegex(@"^\[(.*?)\]\s*(.*)$")]
+    private static partial Regex MyRegex();
 }

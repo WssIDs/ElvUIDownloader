@@ -1,19 +1,13 @@
-﻿using ElvUIDownloader.DI;
-using ElvUIDownloader.Models.Abstraction;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using ElvUIDownloader.DI;
 using Microsoft.Extensions.DependencyInjection;
-using System.Threading;
 
 namespace ElvUIDownloader.ViewModels.Base;
 
-public abstract class ViewModelBase : ModelBase
+public abstract partial class ViewModelBase : ObservableObject
 {
     protected readonly DialogService DialogService = SimpleIoC.ServiceProvider.GetRequiredService<DialogService>();
 
-	private bool? _dialogResut;
-
-	public bool? DialogResult
-    {
-        get => _dialogResut;
-        set => Set(ref _dialogResut, value);
-    }
+    [ObservableProperty]
+	public partial bool? DialogResult { get; set; }
 }
