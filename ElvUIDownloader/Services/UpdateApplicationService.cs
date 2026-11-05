@@ -53,6 +53,8 @@ public class UpdateApplicationService(
 
                 if (applicationStore.UpdateVersion > applicationStore.Version)
                 {
+                    applicationStore.LocalSetupFilename.Refresh();
+
                     if (applicationStore.LocalSetupFilename.Exists)
                     {
                         var versionInfo = FileVersionInfo.GetVersionInfo(applicationStore.LocalSetupFilename.FullName);
@@ -74,6 +76,8 @@ public class UpdateApplicationService(
                         }
                     }
 
+                    applicationStore.LocalSetupFilename.Refresh();
+
                     if (!applicationStore.LocalSetupFilename.Exists)
                     {
                         await using var setupStream = await diskApi.DownloadFileAsync(applicationStore.RemoteSetupFilename, cancellationToken);
@@ -82,6 +86,8 @@ public class UpdateApplicationService(
                         await using var fs = new FileStream(applicationStore.LocalSetupFilename.FullName, FileMode.Create, FileAccess.Write);
                         await setupStream.CopyToAsync(fs, cancellationToken);
                     }
+
+                    applicationStore.LocalSetupFilename.Refresh();
 
                     if (!applicationStore.LocalSetupFilename.Exists)
                     {

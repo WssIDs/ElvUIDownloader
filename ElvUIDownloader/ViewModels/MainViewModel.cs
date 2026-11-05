@@ -4,8 +4,7 @@ using ElvUIDownloader.Models;
 using ElvUIDownloader.Services;
 using ElvUIDownloader.Stores;
 using ElvUIDownloader.Utils;
-using Microsoft.Windows.AppNotifications;
-using Microsoft.Windows.AppNotifications.Builder;
+using Microsoft.Toolkit.Uwp.Notifications;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -117,19 +116,17 @@ public partial class MainViewModel : ViewModelBase
 
         await UpdateApplicationService.CheckAsync(cancellationToken);
 
-        var notificationBuilder = new AppNotificationBuilder()
+        var notificationBuilder = new ToastContentBuilder()
                .AddText("Обновление приложения")
                .AddArgument("update_action", "check_update");
 
-        if (!ApplicationStore.IsNeedUpdate)
+        if (ApplicationStore.IsNeedUpdate)
         {
             notificationBuilder
                 .AddText("Обновление загружено. Обновить?")
 
-                .AddButton(new AppNotificationButton("Да")
-                    .AddArgument("update_action", "confirm_update"))
-                .AddButton(new AppNotificationButton("Отмена")
-                    .AddArgument("update_action", "cancel_update"));
+                .AddButton(new ToastButton("Да", "confirm_update"))
+                .AddButton(new ToastButtonDismiss("Отмена"));
         }
         else
         {
@@ -137,8 +134,7 @@ public partial class MainViewModel : ViewModelBase
                 .AddText("Обновление не требуется");
         }
 
-        // Вывод уведомления на экран средствами ОС
-        AppNotificationManager.Default.Show(notificationBuilder.BuildNotification());
+        notificationBuilder.Show();
 
         IsBusy = false;
     }
@@ -157,17 +153,15 @@ public partial class MainViewModel : ViewModelBase
     {
         IsBusy = true;
 
-        var notificationBuilder = new AppNotificationBuilder()
+        var notificationBuilder = new ToastContentBuilder()
        .AddText("Переустановка приложения")
        .AddArgument("update_action", "check_update")
             .AddText("Переустановить приложение?")
 
-            .AddButton(new AppNotificationButton("Да")
-                .AddArgument("update_action", "confirm_update"))
-            .AddButton(new AppNotificationButton("Отмена")
-                .AddArgument("update_action", "cancel_update"));
+            .AddButton(new ToastButton("Да", "confirm_update"))
+            .AddButton(new ToastButtonDismiss("Отмена"));
 
-        AppNotificationManager.Default.Show(notificationBuilder.BuildNotification());
+        notificationBuilder.Show();
 
         IsBusy = false;
     }
