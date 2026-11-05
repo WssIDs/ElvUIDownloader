@@ -16,10 +16,10 @@
         <NoWarn>$(NoWarn);WPF0001</NoWarn>
     </PropertyGroup>
 	<PropertyGroup>
-		<FileVersion>1.4.2</FileVersion>
-		<AssemblyVersion>1.4.2</AssemblyVersion>
-		<ProductVersion>1.4.2</ProductVersion>
-		<Version>1.4.2</Version>
+		<FileVersion>1.4.3</FileVersion>
+		<AssemblyVersion>1.4.3</AssemblyVersion>
+		<ProductVersion>1.4.3</ProductVersion>
+		<Version>1.4.3</Version>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
