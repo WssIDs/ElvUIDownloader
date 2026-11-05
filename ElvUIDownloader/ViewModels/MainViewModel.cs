@@ -1,15 +1,17 @@
-﻿using ElvUIDownloader.Models;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using ElvUIDownloader.Models;
 using ElvUIDownloader.Services;
 using ElvUIDownloader.Stores;
 using ElvUIDownloader.Utils;
+using Microsoft.Windows.AppNotifications;
+using Microsoft.Windows.AppNotifications.Builder;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 
 namespace ElvUIDownloader.ViewModels;
 
@@ -103,37 +105,6 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial bool IsBusy { get; set; }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <exception cref="Exception"></exception>
-    [RelayCommand(CanExecute = nameof(CanLoaded))]
-    private async Task LoadedAsync(CancellationToken cancellationToken = default)
-    {
-        IsBusy = true;
-
-        await UpdateAddonService.CheckAsync(cancellationToken);
-
-        await UpdateApplicationService.CheckAsync(cancellationToken);
-
-        if (ApplicationStore.IsNeedUpdate)
-        {
-            var result = MessageBox.Show($"Обновление загружено. Новая версия - {ApplicationStore.RemoteFileVersionFilename}\nОбновить?", "Обновление приложения",  MessageBoxButton.OKCancel, MessageBoxImage.Question);
-
-            if (result == MessageBoxResult.OK)
-            {
-                await UpdateApplicationService.InstallAsync(true, cancellationToken);
-            }
-        }
-
-        IsBusy = false;
-    }
-
-    private bool CanLoaded()
-    {
-        return (!IsBusy || IsSelectedProfile) && ProfileStore.CurrentProfile != null;
-    }
     
     /// <summary>
     /// 
@@ -146,21 +117,28 @@ public partial class MainViewModel : ViewModelBase
 
         await UpdateApplicationService.CheckAsync(cancellationToken);
 
-        if (ApplicationStore.IsNeedUpdate)
-        {
-            var result = MessageBox.Show($"Обновление загружено. Обновить?", "Обновление приложения",
-                MessageBoxButton.OKCancel, MessageBoxImage.Question);
+        var notificationBuilder = new AppNotificationBuilder()
+               .AddText("Обновление приложения")
+               .AddArgument("update_action", "check_update");
 
-            if (result == MessageBoxResult.OK)
-            {
-                await UpdateApplicationService.InstallAsync(true, cancellationToken);
-            }
+        if (!ApplicationStore.IsNeedUpdate)
+        {
+            notificationBuilder
+                .AddText("Обновление загружено. Обновить?")
+
+                .AddButton(new AppNotificationButton("Да")
+                    .AddArgument("update_action", "confirm_update"))
+                .AddButton(new AppNotificationButton("Отмена")
+                    .AddArgument("update_action", "cancel_update"));
         }
         else
         {
-            MessageBox.Show("Обновление не требуется", "Обновление приложения", MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            notificationBuilder
+                .AddText("Обновление не требуется");
         }
+
+        // Вывод уведомления на экран средствами ОС
+        AppNotificationManager.Default.Show(notificationBuilder.BuildNotification());
 
         IsBusy = false;
     }
@@ -179,13 +157,17 @@ public partial class MainViewModel : ViewModelBase
     {
         IsBusy = true;
 
-        var result = MessageBox.Show($"Переустановить приложение?", "Переустановка приложения",
-            MessageBoxButton.OKCancel, MessageBoxImage.Question);
+        var notificationBuilder = new AppNotificationBuilder()
+       .AddText("Переустановка приложения")
+       .AddArgument("update_action", "check_update")
+            .AddText("Переустановить приложение?")
 
-        if (result == MessageBoxResult.OK)
-        {
-            await UpdateApplicationService.InstallAsync(true, cancellationToken);
-        }
+            .AddButton(new AppNotificationButton("Да")
+                .AddArgument("update_action", "confirm_update"))
+            .AddButton(new AppNotificationButton("Отмена")
+                .AddArgument("update_action", "cancel_update"));
+
+        AppNotificationManager.Default.Show(notificationBuilder.BuildNotification());
 
         IsBusy = false;
     }

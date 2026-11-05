@@ -39,6 +39,7 @@ public class UpdateApplicationService(
             if (data != null)
             {
                 var updateVersion = Version.Parse(data.FileVersion);
+                applicationStore.UpdateVersion = updateVersion;
 
                 // Setup всегда скачиваем
                 if (!applicationStore.LocalSetupFilename.Exists)
@@ -50,7 +51,7 @@ public class UpdateApplicationService(
                     await setupStream.CopyToAsync(fs, cancellationToken);
                 }
 
-                if (updateVersion > applicationStore.Version)
+                if (applicationStore.UpdateVersion > applicationStore.Version)
                 {
                     if (applicationStore.LocalSetupFilename.Exists)
                     {
@@ -62,7 +63,7 @@ public class UpdateApplicationService(
 
                             // Если версия установщика меньше или равна, то его нужно удалить
                             // Или версия на сервере больше скачанной версии
-                            if (localSetupVersion <= applicationStore.Version || updateVersion > localSetupVersion)
+                            if (localSetupVersion <= applicationStore.Version || applicationStore.UpdateVersion > localSetupVersion)
                             {
                                 applicationStore.LocalSetupFilename.Delete();
                             }
@@ -95,13 +96,13 @@ public class UpdateApplicationService(
                 }
                 else
                 {
-                    if(updateVersion == applicationStore.Version)
+                    if(applicationStore.UpdateVersion == applicationStore.Version)
                     {
-                        logger.LogInformation("Версия обновления ({UpdateVersion}) актуальная - Текущая версия ({ApplicationStoreVersion}) ", updateVersion, applicationStore.Version);
+                        logger.LogInformation("Версия обновления ({UpdateVersion}) актуальная - Текущая версия ({ApplicationStoreVersion}) ", applicationStore.UpdateVersion, applicationStore.Version);
                     }
                     else
                     {
-                        logger.LogInformation("Версия обновления ({UpdateVersion}) ниже - Текущая версия ({ApplicationStoreVersion}) ", updateVersion, applicationStore.Version);
+                        logger.LogInformation("Версия обновления ({UpdateVersion}) ниже - Текущая версия ({ApplicationStoreVersion}) ", applicationStore.UpdateVersion, applicationStore.Version);
                     }
 
                     applicationStore.IsNeedUpdate = false;

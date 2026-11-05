@@ -65,7 +65,9 @@ public class ApplicationStore : ObservableObject
     /// <summary>
     /// 
     /// </summary>
-    public Version Version { get; set; } = new(1,0,0,0);
+    public Version Version { get; set; } = new(1, 0, 0, 0);
+
+    public Version UpdateVersion { get; set; } = new(1, 0, 0, 0);
 
     /// <summary>
     /// 

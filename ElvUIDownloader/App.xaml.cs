@@ -16,6 +16,8 @@ using System.Diagnostics;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media;
+using Microsoft.Windows.AppNotifications;
+using Microsoft.Windows.AppNotifications.Builder;
 using YandexDisk.API.Client.DI;
 
 #pragma warning disable WPF0001 // ThemeMode помечен как experimental
@@ -144,6 +146,10 @@ namespace ElvUIDownloader
         {
             try
             {
+                AppNotificationManager.Default.NotificationInvoked += OnNotificationInvoked;
+
+                AppNotificationManager.Default.Register();
+                
                 SimpleIoC.ServiceProvider = _host.Services;
 
                 var configuration = _host.Services.GetRequiredService<IConfiguration>();
@@ -182,10 +188,25 @@ namespace ElvUIDownloader
                                 vm.AddonStore.ElapsedTime.Start();
                                 vm.ApplicationStore.ElapsedTime.Start();
 
-                                //var appTask = vm.UpdateApplicationService.CheckAsync(tokenSource.Token);
+                                var appTask = vm.UpdateApplicationService.CheckAsync(tokenSource.Token);
                                 var addonTask = vm.UpdateAddonService.CheckAsync(tokenSource.Token);
 
                                 await Task.WhenAll(addonTask);
+
+                                if (vm.ApplicationStore.IsNeedUpdate)
+                                {
+                                    var notificationBuilder = new AppNotificationBuilder()
+                                    .AddText("Обновление приложения")
+                                    .AddArgument("update_action", "check_update")
+                                        .AddText($"Обновление загружено. Новая версия - {vm.ApplicationStore.UpdateVersion}\nОбновить?")
+
+                                        .AddButton(new AppNotificationButton("Да")
+                                            .AddArgument("update_action", "confirm_update"))
+                                        .AddButton(new AppNotificationButton("Отмена")
+                                            .AddArgument("update_action", "cancel_update"));
+
+                                    AppNotificationManager.Default.Show(notificationBuilder.BuildNotification());
+                                }
                             }
                             catch (Exception ex)
                             {
@@ -204,8 +225,23 @@ namespace ElvUIDownloader
                     {
                         var appTask = vm.UpdateApplicationService.CheckAsync(tokenSource.Token);
                         var addonTask = vm.UpdateAddonService.CheckAsync(tokenSource.Token);
-
+                        
                         await Task.WhenAll(appTask, addonTask);
+
+                        if (vm.ApplicationStore.IsNeedUpdate)
+                        {
+                            var notificationBuilder = new AppNotificationBuilder()
+                            .AddText("Обновление приложения")
+                            .AddArgument("update_action", "check_update")
+                                .AddText($"Обновление загружено. Новая версия - {vm.ApplicationStore.UpdateVersion}\nОбновить?")
+
+                                .AddButton(new AppNotificationButton("Да")
+                                    .AddArgument("update_action", "confirm_update"))
+                                .AddButton(new AppNotificationButton("Отмена")
+                                    .AddArgument("update_action", "cancel_update"));
+
+                            AppNotificationManager.Default.Show(notificationBuilder.BuildNotification());
+                        }
 
                         Debug.WriteLine("Show WND");
                     });
@@ -219,42 +255,41 @@ namespace ElvUIDownloader
             }
         }
 
-        public static void ApplyTheme(AppSettings appSettings)
+        private async void OnNotificationInvoked(AppNotificationManager sender, AppNotificationActivatedEventArgs args)
         {
-            Application.Current.ThemeMode = appSettings.Theme switch
+            var updateApplicationService = _host.Services.GetRequiredService<UpdateApplicationService>();
+
+            if (args.Arguments.Count == 0) return;
+
+            if (args.Arguments.TryGetValue("update_action", out var res))
             {
-                EApplicationTheme.Light => ThemeMode.Light,
-                EApplicationTheme.Dark => ThemeMode.Dark,
-                _ => ThemeMode.System   // вместо null
-            };
+                if (string.IsNullOrEmpty(res)) return;
+
+                switch (res)
+                {
+                    case "confirm_update":
+                        {
+                            await updateApplicationService.InstallAsync(true);
+
+                            break;
+                        }
+                    case "cancel_update":
+                        {
+                            break;
+                        }
+                    case "check_update":
+                        {
+                            break;
+                        }
+                }
+            }
         }
 
-        public static void ApplyAccentColor(Color? baseColor)
+
+        protected override void OnExit(ExitEventArgs e)
         {
-            if (baseColor == null)
-            {
-                Current.Resources.Remove("SystemAccentColor");
-                Current.Resources.Remove("AccentButtonBackground");
-                Current.Resources.Remove("SystemAccentColorLight1");
-                Current.Resources.Remove("AccentButtonBackgroundPointerOver");
-
-                return;
-            }
-
-            // Перезаписываем ресурсы на уровне приложения
-            Current.Resources["SystemAccentColor"] = baseColor;
-
-            // Желательно программно рассчитать и обновить и кисти:
-            Current.Resources["AccentButtonBackground"] = new SolidColorBrush(baseColor.Value);
-
-            // Для оттенков (наведение/клик) можно использовать вспомогательные методы изменения яркости
-            Color lightColor = Color.FromArgb(baseColor.Value.A,
-                (byte)Math.Min(255, baseColor.Value.R + 30),
-                (byte)Math.Min(255, baseColor.Value.G + 30),
-                (byte)Math.Min(255, baseColor.Value.B + 30));
-
-            Current.Resources["SystemAccentColorLight1"] = lightColor;
-            Current.Resources["AccentButtonBackgroundPointerOver"] = new SolidColorBrush(lightColor);
+            AppNotificationManager.Default.Unregister();
+            base.OnExit(e);
         }
     }
 }
