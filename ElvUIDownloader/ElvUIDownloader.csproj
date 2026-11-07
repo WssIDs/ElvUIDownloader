@@ -17,10 +17,10 @@
         <WindowsPackageType>None</WindowsPackageType>
     </PropertyGroup>
 	<PropertyGroup>
-		<FileVersion>1.4.3</FileVersion>
-		<AssemblyVersion>1.4.3</AssemblyVersion>
-		<ProductVersion>1.4.3</ProductVersion>
-		<Version>1.4.3</Version>
+		<FileVersion>1.4.4</FileVersion>
+		<AssemblyVersion>1.4.4</AssemblyVersion>
+		<ProductVersion>1.4.4</ProductVersion>
+		<Version>1.4.4</Version>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
