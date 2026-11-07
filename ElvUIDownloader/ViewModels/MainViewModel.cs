@@ -4,13 +4,14 @@ using ElvUIDownloader.Models;
 using ElvUIDownloader.Services;
 using ElvUIDownloader.Stores;
 using ElvUIDownloader.Utils;
-using Microsoft.Toolkit.Uwp.Notifications;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media;
+using Microsoft.Windows.AppNotifications;
+using Microsoft.Windows.AppNotifications.Builder;
 
 namespace ElvUIDownloader.ViewModels;
 
@@ -116,7 +117,7 @@ public partial class MainViewModel : ViewModelBase
 
         await UpdateApplicationService.CheckAsync(cancellationToken);
 
-        var notificationBuilder = new ToastContentBuilder()
+        var notificationBuilder = new AppNotificationBuilder()
                .AddText("Обновление приложения")
                .AddArgument("update_action", "check_update");
 
@@ -125,8 +126,10 @@ public partial class MainViewModel : ViewModelBase
             notificationBuilder
                 .AddText("Обновление загружено. Обновить?")
 
-                .AddButton(new ToastButton("Да", "confirm_update"))
-                .AddButton(new ToastButtonDismiss("Отмена"));
+                .AddButton(new AppNotificationButton("Да")
+                    .AddArgument("update_action", "confirm_update"))
+                .AddButton(new AppNotificationButton("Отмена")
+                    .AddArgument("action", "dismiss"));
         }
         else
         {
@@ -134,7 +137,7 @@ public partial class MainViewModel : ViewModelBase
                 .AddText("Обновление не требуется");
         }
 
-        notificationBuilder.Show();
+        TryShowNotification(notificationBuilder.BuildNotification());
 
         IsBusy = false;
     }
@@ -153,15 +156,17 @@ public partial class MainViewModel : ViewModelBase
     {
         IsBusy = true;
 
-        var notificationBuilder = new ToastContentBuilder()
+        var notificationBuilder = new AppNotificationBuilder()
        .AddText("Переустановка приложения")
        .AddArgument("update_action", "check_update")
             .AddText("Переустановить приложение?")
 
-            .AddButton(new ToastButton("Да", "confirm_update"))
-            .AddButton(new ToastButtonDismiss("Отмена"));
+            .AddButton(new AppNotificationButton("Да")
+                .AddArgument("update_action", "confirm_update"))
+            .AddButton(new AppNotificationButton("Отмена")
+                .AddArgument("action", "dismiss"));
 
-        notificationBuilder.Show();
+        TryShowNotification(notificationBuilder.BuildNotification());
 
         IsBusy = false;
     }
@@ -171,6 +176,18 @@ public partial class MainViewModel : ViewModelBase
         ApplicationStore.LocalSetupFilename.Refresh();
 
         return !IsBusy || IsSelectedProfile || ProfileStore.CurrentProfile != null || ApplicationStore.LocalSetupFilename.Exists;
+    }
+
+    private static void TryShowNotification(AppNotification notification)
+    {
+        try
+        {
+            AppNotificationManager.Default.Show(notification);
+        }
+        catch (Exception exception)
+        {
+            Debug.WriteLine($"Не удалось показать уведомление: {exception}");
+        }
     }
 
     /// <summary>
@@ -186,6 +203,7 @@ public partial class MainViewModel : ViewModelBase
 
             await UpdateAddonService.CheckAsync(cancellationToken);
             await UpdateAddonService.InstallAsync(cancellationToken);
+            await UpdateAddonService.CheckAsync(cancellationToken);
 
             IsBusy = false;
         }
@@ -202,6 +220,22 @@ public partial class MainViewModel : ViewModelBase
         Debug.WriteLine($"Can Install - {res}");
 
         return res;
+    }
+
+    [RelayCommand]
+    private async Task CheckAddonAsync(CancellationToken cancellationToken = default)
+    {
+        if (IsBusy || ProfileStore.CurrentProfile == null) return;
+
+        try
+        {
+            IsBusy = true;
+            await UpdateAddonService.CheckAsync(cancellationToken);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     /// <summary>

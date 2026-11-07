@@ -35,6 +35,7 @@ public class InstallAddonBackgroundService : BaseBackgroundService
             Logger.LogInformation("Выполнение запуска установки аддона");
 
             await _updateAddonService.InstallAsync(cancellationToken);
+            await _updateAddonService.CheckAsync(cancellationToken);
 
             Logger.LogInformation("Установка аддона завершена");
         }

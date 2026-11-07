@@ -4,6 +4,8 @@ public static class DirectoryInfoEx
 {
     public static async Task CopyFilesRecursivelyAsync(string sourcePath, string targetPath)
     {
+        Directory.CreateDirectory(targetPath);
+
         await Task.Run(async() =>
         {
             //Now Create all the directories

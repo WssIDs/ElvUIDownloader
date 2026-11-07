@@ -142,28 +142,34 @@ public class UpdateAddonService(
     public async Task InstallAsync(CancellationToken cancellationToken = default)
     {
         addonStore.IsUpdateAddonTaskRunning = true;
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        switch (addonStore.Mode)
+        try
         {
-            case EAddonMode.NeedInstall:
-                Debug.WriteLine("Проверка установки аддона");
+            cancellationToken.ThrowIfCancellationRequested();
 
-                await InternalInstallAsync(cancellationToken);
-                Debug.WriteLine("Аддон установлен");
-                break;
-            case EAddonMode.NeedUpdate:
-                Debug.WriteLine("Требуется обновление аддона");
+            switch (addonStore.Mode)
+            {
+                case EAddonMode.NeedInstall:
+                    Debug.WriteLine("Проверка установки аддона");
 
-                await InternalInstallAsync(cancellationToken);
-                Debug.WriteLine("Аддон обновлен");
-                break;
+                    await InternalInstallAsync(cancellationToken);
+                    Debug.WriteLine("Аддон установлен");
+                    break;
+                case EAddonMode.NeedUpdate:
+                    Debug.WriteLine("Требуется обновление аддона");
+
+                    await InternalInstallAsync(cancellationToken);
+                    Debug.WriteLine("Аддон обновлен");
+                    break;
+            }
+        }
+        finally
+        {
+            addonStore.IsUpdateAddonTaskRunning = false;
+            addonStore.IsInstalling = false;
+            addonStore.IsDownloading = false;
         }
 
         Debug.WriteLine("Проверка обновления аддона завершена");
-
-        addonStore.IsUpdateAddonTaskRunning = false;
     }
 
     private async Task InternalInstallAsync(CancellationToken cancellationToken = default)
@@ -210,36 +216,36 @@ public class UpdateAddonService(
             {
                 await using var arch = new ZipArchive(stream, ZipArchiveMode.Read);
 
-                var dir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "Downloads"));
+                var extractionPath = Path.Combine(
+                    Path.GetTempPath(),
+                    "ElvUIDownloader",
+                    Guid.NewGuid().ToString("N"));
+                Directory.CreateDirectory(extractionPath);
 
-                if (dir.Exists)
+                try
                 {
-                    foreach (var directoryInfo in dir.GetDirectories())
+                    await arch.ExtractToDirectoryAsync(extractionPath, cancellationToken);
+
+                    foreach (var dirInfoLocal in Directory.GetDirectories(extractionPath))
                     {
-                        directoryInfo.Delete(true);
+                        var addonName = Path.GetFileName(dirInfoLocal);
+                        var destDir = new DirectoryInfo(Path.Combine(destinationUrl, addonName));
+
+                        if (destDir.Exists)
+                        {
+                            destDir.Delete(true);
+                        }
+
+                        await DirectoryInfoEx.CopyFilesRecursivelyAsync(dirInfoLocal, destDir.FullName);
                     }
                 }
-
-                if (!dir.Exists)
+                finally
                 {
-                    dir.Create();
-                }
-
-                await arch.ExtractToDirectoryAsync(dir.FullName, cancellationToken);
-
-                foreach (var dirInfoLocal in dir.GetDirectories())
-                {
-                    var destDir = new DirectoryInfo(Path.Combine(destinationUrl, dirInfoLocal.Name));
-
-                    if (destDir.Exists)
+                    if (Directory.Exists(extractionPath))
                     {
-                        destDir.Delete(true);
+                        Directory.Delete(extractionPath, true);
                     }
-
-                    await DirectoryInfoEx.CopyFilesRecursivelyAsync(dirInfoLocal.FullName, destDir.FullName);
                 }
-
-                dir.Delete(true);
             }, cancellationToken);
 
             addonStore.IsInstalling = false;

@@ -17,7 +17,13 @@
       <change beforePath="$PROJECT_DIR$/.idea/.idea.ElvUIDownloader/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.ElvUIDownloader/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ElvUIDownloader/App.xaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/App.xaml.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ElvUIDownloader/ElvUIDownloader.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/ElvUIDownloader.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/YandexClient/YandexDisk.API.Client.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/YandexClient/YandexDisk.API.Client.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/Hosted/Base/BaseBackgroundService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/Hosted/Base/BaseBackgroundService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/Hosted/InstallAddonBackgroundService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/Hosted/InstallAddonBackgroundService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/Services/UpdateAddonService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/Services/UpdateAddonService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/Services/UpdateApplicationService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/Services/UpdateApplicationService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/Utils/DirectoryInfoEx.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/Utils/DirectoryInfoEx.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/ViewModels/MainViewModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/ViewModels/MainViewModel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElvUIDownloader/Views/MainView.xaml" beforeDir="false" afterPath="$PROJECT_DIR$/ElvUIDownloader/Views/MainView.xaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,8 +49,6 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$USER_HOME$/AppData/Local/Temp/SourceGeneratedDocuments/4003EE9585A06180ED7CD136/CommunityToolkit.Mvvm.SourceGenerators/CommunityToolkit.Mvvm.SourceGenerators.ObservablePropertyGenerator/ElvUIDownloader.ViewModels.MainViewModel.g.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$USER_HOME$/AppData/Local/Temp/SourceGeneratedDocuments/4003EE9585A06180ED7CD136/CommunityToolkit.Mvvm.SourceGenerators/CommunityToolkit.Mvvm.SourceGenerators.RelayCommandGenerator/ElvUIDownloader.ViewModels.MainViewModel.DeleteAsync.g.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/019a725d56cb4df8969df2457a43cfe1f17728/53/db8158f1/XamlReader.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/47f87616cc4440db91dba39140060003f4a750/6c/49adaac4/MethodBaseInvoker.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/595f49789e46c948f10ab6c3737a7ab0f89a87d369d6e81564ea7a27d6df1/IAsyncRelayCommand.cs" root0="SKIP_HIGHLIGHTING" />
@@ -57,7 +61,6 @@
     <setting file="file://$PROJECT_DIR$/ElvUIDownloader/Models/MessageModel.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/ElvUIDownloader/Models/ProfileModel.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/ElvUIDownloader/Services/UpdateAddonService.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/ElvUIDownloader/Utils/AccentColorManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/ElvUIDownloader/ViewModels/MainViewModel.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/ElvUIDownloader/Views/Base/BaseView.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/ElvUIDownloader/Views/MainView.xaml" root0="FORCE_HIGHLIGHTING" />
@@ -66,6 +69,12 @@
     <setting file="file://$PROJECT_DIR$/ElvUIDownloader/appsettings.json" root0="FORCE_HIGHLIGHTING" />
     <setting file="mock:///Immediate Window" root0="FORCE_HIGHLIGHTING" />
     <setting file="mock://D:/Projects/ElvUIDownloader/ElvUIDownloader/App.xaml.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/Projects/ElvUIDownloader/ElvUIDownloader/Hosted/Base/BaseBackgroundService.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/Projects/ElvUIDownloader/ElvUIDownloader/Hosted/InstallAddonBackgroundService.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/Projects/ElvUIDownloader/ElvUIDownloader/Services/UpdateAddonService.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/Projects/ElvUIDownloader/ElvUIDownloader/Services/UpdateApplicationService.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/Projects/ElvUIDownloader/ElvUIDownloader/ViewModels/MainViewModel.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/Projects/ElvUIDownloader/ElvUIDownloader/Views/MainView.xaml" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="JsBowerSettings">
     <bower-package value="" />
@@ -93,7 +102,7 @@
     &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
     &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
     &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,

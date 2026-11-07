@@ -10,13 +10,14 @@ using ElvUIDownloader.Views.Base;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Toolkit.Uwp.Notifications;
 using Serilog;
 using Serilog.Events;
 using System.Diagnostics;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media;
+using Microsoft.Windows.AppNotifications;
+using Microsoft.Windows.AppNotifications.Builder;
 using YandexDisk.API.Client.DI;
 
 #pragma warning disable WPF0001 // ThemeMode помечен как experimental
@@ -29,11 +30,12 @@ namespace ElvUIDownloader
     public partial class App
     {
         private readonly IHost _host;
+        private bool _notificationsRegistered;
 
         public App()
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-            
+
             var builder = Host.CreateDefaultBuilder();
 
             builder
@@ -145,9 +147,16 @@ namespace ElvUIDownloader
         {
             try
             {
-                ToastNotificationManagerCompat.OnActivated += OnNotificationInvoked;
-
-                //AppNotificationManager.Default.Register();
+                try
+                {
+                    AppNotificationManager.Default.NotificationInvoked += OnNotificationInvoked;
+                    AppNotificationManager.Default.Register();
+                    _notificationsRegistered = true;
+                }
+                catch (Exception notificationException)
+                {
+                    Debug.WriteLine($"Не удалось зарегистрировать уведомления: {notificationException}");
+                }
                 
                 SimpleIoC.ServiceProvider = _host.Services;
 
@@ -167,14 +176,11 @@ namespace ElvUIDownloader
 
                 var tokenSource = new CancellationTokenSource();
 
-                var updateApplicationService = _host.Services.GetRequiredService<UpdateApplicationService>();
-                await updateApplicationService.CheckAsync(tokenSource.Token);
-
                 var dialogService = _host.Services.GetRequiredService<DialogService>();
 
                 if (appSettings.StartMinimize)
                 {
-                    dialogService.ShowHidden<MainViewModel>(async vm =>
+                    dialogService.ShowHidden<MainViewModel>(postLoadingAction: async vm =>
                     {
                         Debug.WriteLine("Show Hidden WND");
 
@@ -187,22 +193,25 @@ namespace ElvUIDownloader
                                 vm.AddonStore.ElapsedTime.Start();
                                 vm.ApplicationStore.ElapsedTime.Start();
 
-                                //var appTask = vm.UpdateApplicationService.CheckAsync(tokenSource.Token);
+                                var applicationTask = vm.UpdateApplicationService.CheckAsync(tokenSource.Token);
                                 var addonTask = vm.UpdateAddonService.CheckAsync(tokenSource.Token);
 
-                                await Task.WhenAll(addonTask);
+                                await Task.WhenAll(applicationTask, addonTask);
 
                                 if (vm.ApplicationStore.IsNeedUpdate)
                                 {
-                                    var notificationBuilder = new ToastContentBuilder()
+                                    var notification = new AppNotificationBuilder()
                                     .AddText("Обновление приложения")
                                     .AddArgument("update_action", "check_update")
                                         .AddText($"Обновление загружено. Новая версия - {vm.ApplicationStore.UpdateVersion}\nОбновить?")
 
-                                        .AddButton(new ToastButton("Да", "confirm_update"))
-                                        .AddButton(new ToastButtonDismiss("Отмена"));
+                                        .AddButton(new AppNotificationButton("Да")
+                                        .AddArgument("update_action", "confirm_update"))
+                                        .AddButton(new AppNotificationButton("Отмена")
+                                            .AddArgument("action", "dismiss"))
+                                        .BuildNotification();
 
-                                    notificationBuilder.Show();
+                                    TryShowNotification(notification);
                                 }
                             }
                             catch (Exception ex)
@@ -218,24 +227,27 @@ namespace ElvUIDownloader
                 }
                 else
                 {
-                    dialogService.Show<MainViewModel>(async vm =>
+                    dialogService.Show<MainViewModel>(postLoadingAction: async vm =>
                     {
-                        //var appTask = vm.UpdateApplicationService.CheckAsync(tokenSource.Token);
+                        var applicationTask = vm.UpdateApplicationService.CheckAsync(tokenSource.Token);
                         var addonTask = vm.UpdateAddonService.CheckAsync(tokenSource.Token);
                         
-                        await Task.WhenAll(addonTask);
+                        await Task.WhenAll(applicationTask, addonTask);
 
                         if (vm.ApplicationStore.IsNeedUpdate)
                         {
-                            var notificationBuilder = new ToastContentBuilder()
+                            var notification = new AppNotificationBuilder()
                             .AddText("Обновление приложения")
                             .AddArgument("update_action", "check_update")
                                 .AddText($"Обновление загружено. Новая версия - {vm.ApplicationStore.UpdateVersion}\nОбновить?")
 
-                                .AddButton(new ToastButton("Да", "confirm_update"))
-                                .AddButton(new ToastButtonDismiss("Отмена"));
+                                .AddButton(new AppNotificationButton("Да")
+                                    .AddArgument("update_action", "confirm_update"))
+                                .AddButton(new AppNotificationButton("Отмена")
+                                    .AddArgument("action", "dismiss"))
+                                .BuildNotification();
 
-                            notificationBuilder.Show();
+                            TryShowNotification(notification);
                         }
 
                         Debug.WriteLine("Show WND");
@@ -250,34 +262,68 @@ namespace ElvUIDownloader
             }
         }
 
-        private async void OnNotificationInvoked(ToastNotificationActivatedEventArgsCompat args)
+        private async void OnNotificationInvoked(AppNotificationManager sender, AppNotificationActivatedEventArgs args)
         {
-            var updateApplicationService = _host.Services.GetRequiredService<UpdateApplicationService>();
-
-            if (string.IsNullOrEmpty(args.Argument)) return;
-
-            switch (args.Argument)
+            try
             {
-                case "confirm_update":
+                var updateApplicationService = _host.Services.GetRequiredService<UpdateApplicationService>();
+
+                if (string.IsNullOrEmpty(args.Argument)) return;
+
+                if (!args.Arguments.TryGetValue("update_action", out var action))
+                {
+                    return;
+                }
+
+                switch (action)
+                {
+                    case "confirm_update":
                     {
                         await updateApplicationService.InstallAsync(true);
+                        break;
+                    }
+                    case "cancel_update":
+                    {
+                        break;
+                    }
+                    case "check_update":
+                    {
+                        break;
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                Debug.WriteLine($"Не удалось обработать действие уведомления: {exception}");
+            }
+        }
 
-                        break;
-                    }
-                case "cancel_update":
-                    {
-                        break;
-                    }
-                case "check_update":
-                    {
-                        break;
-                    }
+        private static void TryShowNotification(AppNotification notification)
+        {
+            try
+            {
+                AppNotificationManager.Default.Show(notification);
+            }
+            catch (Exception exception)
+            {
+                Debug.WriteLine($"Не удалось показать уведомление: {exception}");
             }
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
-            //AppNotificationManager.Default.Unregister();
+            if (_notificationsRegistered)
+            {
+                try
+                {
+                    AppNotificationManager.Default.Unregister();
+                }
+                catch (Exception exception)
+                {
+                    Debug.WriteLine($"Не удалось снять регистрацию уведомлений: {exception}");
+                }
+            }
+
             base.OnExit(e);
         }
     }

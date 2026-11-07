@@ -69,10 +69,23 @@ public abstract class BaseBackgroundService : BackgroundService
 
                 await Task.Delay(WaitingTimeAfterCompleted, cancellationToken);
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
             catch (Exception ex)
             {
-                Logger.LogError("Ошибка - {Exception}", ex);
+                Logger.LogError(ex, "Фоновая задача завершилась с ошибкой");
                 Logger.LogInformation("[{TaskName}] Задача завершилась с ошибкой: [{Time}]", TaskName, DateTimeOffset.Now);
+
+                try
+                {
+                    await Task.Delay(WaitingTimeAfterCompleted, cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
             }
         }
     }

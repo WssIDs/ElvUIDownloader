@@ -41,16 +41,6 @@ public class UpdateApplicationService(
                 var updateVersion = Version.Parse(data.FileVersion);
                 applicationStore.UpdateVersion = updateVersion;
 
-                // Setup всегда скачиваем
-                if (!applicationStore.LocalSetupFilename.Exists)
-                {
-                    await using var setupStream = await diskApi.DownloadFileAsync(applicationStore.RemoteSetupFilename, cancellationToken);
-                    if (setupStream == null) return;
-
-                    await using var fs = new FileStream(applicationStore.LocalSetupFilename.FullName, FileMode.Create, FileAccess.Write);
-                    await setupStream.CopyToAsync(fs, cancellationToken);
-                }
-
                 if (applicationStore.UpdateVersion > applicationStore.Version)
                 {
                     applicationStore.LocalSetupFilename.Refresh();
